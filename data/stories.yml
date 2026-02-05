@@ -1,0 +1,56 @@
+# version: "2.0"
+
+# stories:
+
+# - story: complaint submission flow
+#   steps:
+#   - intent: start_complaint
+#   - action: action_check_auth
+#   - intent: register
+#   - action: registration_form
+#   - active_loop: registration_form
+#   - action: registration_form
+#   - active_loop: null
+#   - action: action_register_user
+#   - action: login_form
+#   - active_loop: login_form
+#   - action: login_form
+#   - active_loop: null
+#   - action: action_login_user
+#   - action: clarification_form_am
+#   - active_loop: clarification_form_am
+#   - action: clarification_form_am
+#   - active_loop: null
+#   - action: check_ref_number_am
+#   - intent: confirm_case_correct
+#   - action: action_fetch_court_leveles
+#   - intent: select_court_level
+#   - action: action_save_court_level
+#   - action: action_fetch_branches_by_court_level
+#   - intent: select_branch
+#   - action: action_save_branch
+#   - action: action_fetch_court_main_services
+#   - intent: select_court_main_service
+#   - action: action_save_court_main_service
+#   - action: action_fetch_subunit_one
+#   - intent: select_subunit_one
+#   - action: action_save_subunit_one
+#   - action: action_fetch_subunit_two
+#   - intent: select_subunit_two
+#   - action: action_save_subunit_two
+#   - action: action_fetch_subunit_three
+#   - intent: select_subunit_three
+#   - action: action_save_subunit_three
+#   - action: action_ask_attachment
+#   - intent: deny
+#   - action: action_save_attachment
+#   - action: content_compliant_form
+#   - active_loop: content_compliant_form
+#   - slot_was_set:
+#     - content: "some complaint content"
+#     - new_slot: "accept"
+#   - action: content_compliant_form
+#   - active_loop: null
+#   - action: action_new_slot
+#   - action: submit_compliant_en
+#   - action: action_reset_all_slots

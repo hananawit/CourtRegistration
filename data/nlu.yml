@@ -1,0 +1,134 @@
+version: "2.0"
+
+nlu:
+- intent: greet
+  examples: |
+    - ሰላም
+    - ውድ
+    - hello
+    - hi
+
+- intent: register
+  examples: |
+    - ምዝገባ
+    - መዝገብ እፈልጋለሁ
+    - register
+    - sign up
+    - አዲስ መዝገብ
+    - መለያ ፍጠር
+
+- intent: login
+  examples: |
+    - መግባት
+    - መግባት እፈልጋለሁ
+    - login
+    - sign in
+    - ይግቡ
+    - አስገባ
+
+- intent: start_complaint
+  examples: |
+    - ቅሬታ ማስገባት እፈልጋለሁ
+    - አቤቱታ
+    - complaint
+    - ቅሬታ
+    - ችግር አለኝ
+    - /start_complaint
+
+- intent: cancel
+  examples: |
+    - ሰርዝ
+    - cancel
+    - አቁም
+    - stop
+    - አይሆንም
+
+  
+- intent: select_court_level
+  examples: |
+    - /select_court_level [1d61267c-5f03-4759-9487-bcc246720aa1](court_level_id)
+    - /select_court_level [9fabe5f4-2788-41c3-9bc7-f28809821051](court_level_id)
+
+- intent: select_branch
+  examples: |
+    - /select_branch [1d61267c-5f03-4759-9487-bcc246720aa1](branch_id)
+    - /select_branch [9fabe5f4-2788-41c3-9bc7-f28809821051](branch_id)
+- intent: confirm_case_correct
+  examples: |
+    - case_correct
+    - /case_correct
+
+  # nlu.yml
+- intent: select_court_main_service
+  examples: |
+    - /select_court_main_service{"court_main_service_id": "21135bee-351d-43f5-aebe-0361838e336f"}
+    - select court main service
+
+
+- intent: select_subunit_one
+  examples: |
+    - /select_subunit_one{"subunit_one_id": "21135bee-351d-43f5-aebe-03258638e336f"}
+    - select subunitone
+
+- intent: select_subunit_two
+  examples: |
+    - /select_subunit_two{"subunit_two_id": "21135bee-351d-43f5-aebe-03258638e336f"}
+    - select subunit two
+
+- intent: select_subunit_three
+  examples: |
+    - /select_subunit_three{"subunit_three_id": "21135bee-351d-43f5-aebe-03258638e336f"}
+    - select subunit three
+    
+
+- intent: confirm_case_wrong
+  examples: |
+    - case_wrong
+    - /case_wrong
+
+- intent: affirm
+  examples: |
+    - yes
+    - አዎ
+    - አዎን
+    - አዎ ነው
+    - አዎ ነው።
+
+- intent: deny
+  examples: |
+    - no
+    - አይ
+    - አይ ነው
+    - አይ ነው።
+
+- intent: provide_content
+  examples: |
+    - [complaint text]
+    - ቅሬታ ነው ያለው
+    - ችግር ነው ያለው
+
+- intent: show_my_complaints
+  examples: |
+    - show my complaints
+    - ቅሬታዎቼን አሳይ
+    - my complaints
+    - ቅሬታ አሳይ
+    - /show_my_complaints
+
+- intent: select_complaint
+  examples: |
+    - /select_complaint{"reference_no": "REF-1770013181433-RZEPM8Y9E"}
+    - select complaint REF-1770013181433-RZEPM8Y9E
+
+- intent: view_complaint_detail
+  examples: |
+    - /view_complaint_detail{"reference_no": "REF-1770013181433-RZEPM8Y9E"}
+    - view complaint detail REF-1770013181433-RZEPM8Y9E
+
+- intent: appeal_complaint
+  examples: |
+    - /appeal_complaint{"reference_no": "REF-1770013181433-RZEPM8Y9E"}
+    - appeal complaint REF-1770013181433-RZEPM8Y9E
+    - አቤቱታ አስገባ
+    - appeal
+    - አቤቱታ

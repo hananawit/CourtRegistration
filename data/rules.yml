@@ -1,0 +1,173 @@
+version: "2.0"
+
+rules:
+- rule: view complaint detail
+  steps:
+  - intent: view_complaint_detail
+  - action: action_view_complaint_detail
+
+- rule: appeal complaint
+  steps:
+  - intent: appeal_complaint
+  - action: action_appeal_complaint
+  - action: action_save_attachment
+
+- rule: Handle provide content
+  steps:
+  - intent: provide_content
+  - action: action_save_content
+- rule: Welcome message
+  steps:
+  - intent: greet
+  - action: utter_welcome
+
+- rule: Check auth for complaint
+  steps:
+  - intent: start_complaint
+  - action: action_check_auth
+
+- rule: Start registration form
+  steps:
+  - intent: register
+  - action: registration_form
+  - active_loop: registration_form
+
+- rule: Submit registration form
+  condition:
+  - active_loop: registration_form
+  steps:
+  - action: registration_form
+  - active_loop: null
+  - action: action_register_user
+
+- rule: Start login form
+  steps:
+  - intent: login
+  - action: login_form
+  - active_loop: login_form
+
+- rule: Submit login form
+  condition:
+  - active_loop: login_form
+  steps:
+  - action: login_form
+  - active_loop: null
+  - action: action_login_user
+
+- rule: Start case clarification form after login for complaint
+  condition:
+  - slot_was_set:
+    - is_logged_in: true
+  - slot_was_set:
+    - previous_intent: start_complaint
+  steps:
+  - action: clarification_form_am
+  - active_loop: clarification_form_am
+
+- rule: Continue to Commenter Type Form
+  condition:
+  - active_loop: clarification_form_am
+  steps:
+  - action: clarification_form_am
+  - active_loop: null
+  - slot_was_set:
+      - requested_slot: null
+  - action: check_ref_number_am
+  # - action: action_listen
+  # - action: case_confirmation
+
+- rule: Handle Case Confirmation Correct
+  steps:
+  - intent: confirm_case_correct
+  - action: action_fetch_court_leveles
+
+- rule: Handle court level selection
+  steps:
+  - intent: select_court_level
+  - action: action_save_court_level
+  - action: action_fetch_branches_by_court_level
+
+- rule: Handle Case Confirmation Wrong
+  steps:
+  - intent: confirm_case_wrong
+  - action: clarification_form_am
+  - active_loop: clarification_form_am
+
+- rule: Handle branch selection
+  steps:
+  - intent: select_branch
+  - action: action_save_branch
+  - action: action_fetch_court_main_services
+#
+- rule: Cancel action
+  steps:
+  - intent: cancel
+  - action: utter_cancel
+  - action: action_reset_slots
+
+
+  # rules.yml
+- rule: Handle court main service selection
+  steps:
+  - intent: select_court_main_service
+  - action: action_save_court_main_service
+
+- rule: Handle subunit one selection
+  steps:
+  - intent: select_subunit_one
+  - action: action_save_subunit_one
+
+- rule: Handle subunit two selection
+  steps:
+  - intent: select_subunit_two
+  - action: action_save_subunit_two
+
+- rule: Handle subunit three selection
+  steps:
+  - intent: select_subunit_three
+  - action: action_save_subunit_three
+  - action: action_ask_attachment
+
+- rule: Handle show my complaints
+  steps:
+  - intent: show_my_complaints
+  - action: action_show_my_complaints
+
+- rule: Handle select complaint
+  steps:
+  - intent: select_complaint
+  - action: action_select_complaint
+    
+- rule: Continue to Commenter Type Form
+  condition:
+  - active_loop: content_compliant_form
+  steps:
+  - action: content_compliant_form
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: action_new_slot
+
+  
+- rule: form_upload_image
+  steps:
+  - intent: accept
+  - action: form_upload_image
+  - active_loop: form_upload_image
+  
+- rule: deactivating form_upload_image
+  condition:
+  # Condition that form is active.
+  - active_loop: form_upload_image
+  steps:
+  # Form is deactivated
+  - action: form_upload_image
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: action_upload_image
+  - action: submit_compliant_en
+  - action: action_reset_all_slots
+
