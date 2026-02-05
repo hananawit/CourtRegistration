@@ -1,0 +1,211 @@
+version: "2.0"
+
+intents:
+  - greet
+  - register
+  - login
+  - start_complaint
+  - cancel
+  - select_branch
+  - confirm_case_correct
+  - confirm_case_wrong
+  - case_correct
+  - case_wrong
+  - select_court_main_service
+  - select_subunit_one
+  - select_subunit_two
+  - select_subunit_three
+  - select_court_level
+  - affirm
+  - deny
+  - accept
+  - reject
+  - provide_content
+  - view_complaint_detail
+  - show_my_complaints
+  - select_complaint
+  - appeal_complaint
+
+entities:
+  - court_level_id
+  - branch_id
+  - court_main_service_id
+  - subunit_one_id
+  - subunit_two_id
+  - subunit_three_id
+  - reference_no
+  
+
+slots:
+  phone:
+    type: text
+    influence_conversation: true
+  password:
+    type: text
+    influence_conversation: true
+  access_token:
+    type: text
+    influence_conversation: false
+  user_id:
+    type: text
+    influence_conversation: false
+  is_registered:
+    type: bool
+    influence_conversation: true
+  is_logged_in:
+    type: bool
+    influence_conversation: true
+  previous_intent:
+    type: text
+    influence_conversation: true
+  case_number:
+    type: text
+    influence_conversation: false
+  court_level_data:
+    type: text
+    influence_conversation: false
+  court_level_id:
+    type: text
+    influence_conversation: false
+  branch_id:
+    type: text
+    influence_conversation: false
+  court_main_service_id :
+    type: text
+    influence_conversation: false  
+  subunit_one_id:
+    type: text
+    influence_conversation: false
+  subunit_two_id:
+    type: text
+    influence_conversation: false
+  subunit_three_id:
+    type: text
+    influence_conversation: false
+  available_subunit_twos:
+    type: text
+    influence_conversation: false
+  available_subunit_threes:
+    type: text
+    influence_conversation: false
+  available_court_main_services:
+    type: text
+    influence_conversation: false
+  available_subunits:
+    type: text
+    influence_conversation: false
+  has_attachment:
+    type: bool
+    influence_conversation: false
+  # complaint_content:
+  #   type: text
+  #   influence_conversation: false
+  content:
+    type: text
+    influence_conversation: true
+  new_slot:
+    type: text
+    influence_conversation: true
+  upload_image:
+    type: text
+    influence_conversation: true
+responses:
+  utter_welcome:
+  - text: "👋 ወደ ፍርድ ቤት ቅሬታ ስርዓት እንኳን በደህና መጡ።"
+  
+  utter_cancel:
+  - text: "ምንም ችግር የለውም። ሌላ ጊዜ ይበሉን።"
+  utter_ask_new_slot:
+  - button_type: vertical
+    buttons:
+    - payload: accept
+      title: አዎ አለኝ
+    - payload: reject
+      title: አይ የለኝም
+    text:  የምታያይዙት ተጨማሪ ማስረጃ አሎት?
+
+  utter_auth_required:
+  - text: "📋 ቅሬታ ለመግባት መመዝገብ ወይም መግባት ያስፈልግዎታል።"
+  utter_ask_registration_form_phone:
+  - text: "📱 ለምዝገባ ስልክ ቁጥርዎን ያስገቡ:"
+
+  utter_ask_registration_form_password:
+  - text: "🔑 ለምዝገባ የይለፍ ቃል ይፍጠሩ:"
+
+  utter_ask_login_form_phone:
+  - text: "📱 ለመግባት ስልክ ቁጥርዎን ያስገቡ:"
+
+  utter_ask_login_form_password:
+  - text: "🔑 ለመግባት የይለፍ ቃልዎን ያስገቡ:"
+  utter_ask_case_number:
+  - text: እባኮን መለያ ቁጥሮን አስገቡ
+  
+  utter_ask_content:
+  - text: እባኮን የቅሬታዎን ፍሬ ሃሳብ ባጭሩ ይግለጹ
+
+ 
+actions:
+  - action_register_user
+  - action_login_user
+  - action_post_login_menu
+  - action_check_auth
+  - action_reset_slots
+  - check_ref_number_am
+  - case_confirmation
+  - action_fetch_court_leveles
+  - action_save_court_level
+  - action_save_branch
+  - action_fetch_branches_by_court_level
+  - action_fetch_court_main_services
+  - action_save_court_main_service
+  - action_fetch_subunit_one
+  - action_save_subunit_one
+  - action_fetch_subunit_two
+  - action_save_subunit_two
+  - action_fetch_subunit_three
+  - action_save_subunit_three
+  - action_ask_attachment
+  - action_save_attachment
+  - action_ask_content
+  - action_save_content
+  - submit_compliant_en
+  - action_upload_image
+  - action_reset_all_slots
+  - action_new_slot
+  - action_show_my_complaints
+  - action_select_complaint
+  - action_view_complaint_detail
+  - action_appeal_complaint
+
+
+forms:
+  registration_form:
+    required_slots:
+      phone:
+        - type: from_text
+      password:
+        - type: from_text
+  
+  login_form:
+    required_slots:
+      phone:
+        - type: from_text
+      password:
+        - type: from_text
+
+  clarification_form_am:
+    required_slots:
+      case_number:
+      - type: from_text
+
+  content_compliant_form:
+    required_slots:
+      content:
+      - type: from_text
+      new_slot:
+      - type: from_text
+  form_upload_image:
+    required_slots:
+      upload_image:
+      - type: from_text
+  
