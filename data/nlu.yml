@@ -61,8 +61,9 @@ nlu:
   # nlu.yml
 - intent: select_court_main_service
   examples: |
-    - /select_court_main_service{"court_main_service_id": "21135bee-351d-43f5-aebe-0361838e336f"}
-    - select court main service
+    - /cms_{"court_main_service_id": "21135bee-351d-43f5-aebe-0361838e336f"}
+    - cms_[1d61267c-5f03-4759-9487-bcc246720aa1](court_main_service_id)
+    - cms_[9fabe5f4-2788-41c3-9bc7-f28809821051](court_main_service_id)
 
 
 - intent: select_subunit_one
@@ -73,7 +74,7 @@ nlu:
 - intent: select_subunit_two
   examples: |
     - /select_subunit_two{"subunit_two_id": "21135bee-351d-43f5-aebe-03258638e336f"}
-    - select subunit two
+    - select_subunit_two[9fabe5f4-2788-41c3-9bc7-f28809821051](select_subunit_two_id)
 
 - intent: select_subunit_three
   examples: |

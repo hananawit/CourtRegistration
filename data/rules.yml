@@ -24,7 +24,9 @@ rules:
 - rule: Check auth for complaint
   steps:
   - intent: start_complaint
-  - action: action_check_auth
+  # - action: action_check_auth
+  - action: clarification_form_am
+  - active_loop: clarification_form_am
 
 - rule: Start registration form
   steps:

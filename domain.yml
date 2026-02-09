@@ -54,10 +54,10 @@ slots:
     influence_conversation: true
   is_logged_in:
     type: bool
-    influence_conversation: true
+    influence_conversation: false
   previous_intent:
     type: text
-    influence_conversation: true
+    influence_conversation: false
   case_number:
     type: text
     influence_conversation: false
@@ -109,6 +109,12 @@ slots:
   upload_image:
     type: text
     influence_conversation: true
+  selected_complaint_ref:
+    type: text
+    influence_conversation: false
+  user_complaints:
+    type: text
+    influence_conversation: false
 responses:
   utter_welcome:
   - text: "👋 ወደ ፍርድ ቤት ቅሬታ ስርዓት እንኳን በደህና መጡ።"
@@ -148,7 +154,7 @@ actions:
   - action_register_user
   - action_login_user
   - action_post_login_menu
-  - action_check_auth
+  # - action_check_auth
   - action_reset_slots
   - check_ref_number_am
   - case_confirmation
