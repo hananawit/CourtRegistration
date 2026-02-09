@@ -19,8 +19,11 @@ from rasa_sdk import Action, Tracker, logger
 from rasa_sdk.events import SlotSet, EventType
 
 
-referenceNumber=''
-isCaseNumberAvailable= ''
+
+access_token1 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IiIsInN1YiI6IjUyYTYyYWIwLTExYmEtNDdlYS1hNDI5LWE3ZjQ5MGNjOTYxNyIsInJvbGUiOnsiaWQiOiI1ODkxYzYzOS1kZmI3LTRmMWItYTMwZi02NmEzNDI4ODRjM2MiLCJuYW1lIjoiY2xpZW50IiwiY29kZSI6IkJSQU5DSF9MRVZFTCJ9LCJjb3VydExldmVsSWQiOm51bGwsImJyYW5jaElkIjpudWxsLCJpYXQiOjE3NzAzMDA0NzAsImV4cCI6MTc3MDkwNTI3MH0.BAlRYxKHy47ITW_7Qxpx5oTMtf5lvIVZ4IR7wUecIY4"
+
+# referenceNumber=''
+# isCaseNumberAvailable= ''
 
 
 class GlobalVariables:
@@ -234,6 +237,82 @@ class ActionPostLoginMenu(Action):
         dispatcher.utter_message(text="ምን ያስፈልግዎታል?", buttons=buttons, button_type="vertical")
         return []
 
+# class ActionCheckAuth(Action):
+#     def name(self) -> Text:
+#         return "action_check_auth"
+
+#     def run(
+#         self,
+#         dispatcher: CollectingDispatcher,
+#         tracker: Tracker,
+#         domain: Dict[Text, Any]
+#     ) -> List[Dict[Text, Any]]:
+
+#         # 🔐 Always read from slot (Rasa-safe)
+#         access_token = tracker.get_slot("access_token")
+
+#         print("====================================")
+#         print("DEBUG: ActionCheckAuth")
+#         print("DEBUG: access_token from slot:", access_token)
+#         print("====================================")
+
+#         # 🧪 STATIC TOKEN FOR TESTING (remove in prod)
+#         if not access_token:
+#             print("DEBUG: No token in slot → using static test token")
+#         access_token = "eyJhbGciOiJIUzI1NiIsSTATIC_TEST_TOKEN"
+
+#         # ❌ Still no token → force login
+#         if not access_token:
+#             dispatcher.utter_message(
+#                 text="📋 ቅሬታ ለመግባት መጀመሪያ መግባት ያስፈልግዎታል።"
+#             )
+#             return [FollowupAction("login_form")]
+
+#         # ✅ Auth header
+#         headers = {
+#             "Authorization": f"Bearer {access_token}",
+#             "Accept": "application/json"
+#         }
+
+#         case_number = "00/0001/12345"
+#         url = f"http://213.55.79.158:8080/api/SearchCase?caseNumber={case_number}"
+
+#         print("DEBUG: Calling API:", url)
+#         print("DEBUG: Authorization Header:", headers["Authorization"][:30], "...")
+
+#         try:
+#             response = requests.get(url, headers=headers, timeout=30)
+
+#             print("DEBUG: API Status Code:", response.status_code)
+
+#             if response.status_code == 200:
+#                 data = response.json()
+#                 dispatcher.utter_message(
+#                     text="✅ በስርዓቱ ውስጥ መግባት ተሳክቷል። መቀጠል ይችላሉ።"
+#                 )
+
+#                 # 🔁 Continue flow
+#                 return [FollowupAction("clarification_form_am")]
+
+#             elif response.status_code in [401, 403]:
+#                 dispatcher.utter_message(
+#                     text="❌ የመግባት ፈቃድ ጊዜው አልፎታል። እባክዎ እንደገና ይግቡ።"
+#             )
+#             return [FollowupAction("login_form")]
+
+#         else:
+#             dispatcher.utter_message(
+#                 text="❌ ከሰርቨር ጋር ችግር ተፈጥሯል። እባክዎ ቆይተው ይሞክሩ።"
+#             )
+#             return []
+
+#         except Exception as e:
+#             print("ERROR: API call failed:", e)
+#             dispatcher.utter_message(
+#                 text="⚠️ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።"
+#             )
+#             return []
+
 class ActionLoginUser(Action):
     def name(self) -> Text:
         return "action_login_user"
@@ -281,15 +360,13 @@ class ActionLoginUser(Action):
                 response_data = response.json()
                 print(f"DEBUG: Login response_data: {response_data}")
                 access_token = response_data.get("access_token")
+
                 user_id = response_data.get("user", {}).get("id")
                 print(f"DEBUG: Extracted access_token: {access_token[:20] if access_token else None}")
 
                 if access_token:
                     print(f"DEBUG: Login successful, access_token: {access_token[:20]}...")
                     dispatcher.utter_message(text="✅ በተሳካ ሁኔታ ገብተዋል!")
-
-                    # Set global access token
-                    GlobalVariables.access_token = access_token
 
                     # Route based on previous intent
                     previous_intent = tracker.get_slot("previous_intent")
@@ -328,7 +405,6 @@ class ActionLoginUser(Action):
             dispatcher.utter_message(text="❌ አንድ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።")
             return [SlotSet("phone", None), SlotSet("password", None), FollowupAction("login_form")]
 
-        return [SlotSet("phone", None), SlotSet("password", None)]
 
 # =============== SHOW MY COMPLAINTS ACTION ===============
 class ActionShowMyComplaints(Action):
@@ -339,7 +415,7 @@ class ActionShowMyComplaints(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        access_token = GlobalVariables.access_token
+        access_token = access_token1
 
         if not access_token:
             send_login_register_buttons(dispatcher, tracker)
@@ -366,12 +442,20 @@ class ActionShowMyComplaints(Action):
 
             complaints = complaints_data["data"]
 
+            # Store complaints data for later use (to get IDs)
+            user_complaints = []
+            for complaint in complaints:
+                user_complaints.append({
+                    "id": complaint.get("id"),
+                    "reference_no": complaint.get("reference_no", "N/A")
+                })
+
             buttons = []
             for complaint in complaints:
                 ref_no = complaint.get("reference_no", "N/A")
-                payload = f"/select_complaint{{\"reference_no\": \"{ref_no}\"}}"
+                # Use short prefix to avoid Telegram button data limit
+                payload = "sc_" + ref_no
                 buttons.append({"title": ref_no, "payload": payload})
-
             if buttons:
                 dispatcher.utter_message(
                     text="እባክዎ ቅሬታ ይምረጡ:",
@@ -385,7 +469,7 @@ class ActionShowMyComplaints(Action):
             print(f"Error fetching complaints: {e}")
             dispatcher.utter_message(text="ስህተት ተፈጥሯል።")
 
-        return []
+        return [SlotSet("user_complaints", user_complaints)]
 
 # =============== SELECT COMPLAINT ACTION ===============
 class ActionSelectComplaint(Action):
@@ -401,31 +485,34 @@ class ActionSelectComplaint(Action):
         # Extract reference_no from entity or payload
         reference_no = None
 
-        # Method 1: Check entities
-        for entity in tracker.latest_message.get("entities", []):
-            if entity["entity"] == "reference_no":
-                reference_no = entity["value"]
-                break
+        # Method 1: Extract from "select_complaint" prefix (primary method for button clicks)
+        if "select_complaint" in user_text:
+            reference_no = user_text.replace("select_complaint", "", 1)
+            print(f"DEBUG: Extracted reference_no from select_complaint prefix: {reference_no}")
 
-        # Method 2: Extract from payload
-        if not reference_no and "reference_no" in user_text:
-            import re
-            match = re.search(r'reference_no\":\s*\"([^\"]+)\"', user_text)
-            if match:
-                reference_no = match.group(1)
+        # Method 2: Extract from "sc_" prefix
+        if not reference_no and user_text.startswith("sc_"):
+            reference_no = user_text.replace("sc_", "", 1)
+            print(f"DEBUG: Extracted reference_no from sc_ prefix: {reference_no}")
+
+        # Method 3: Direct payload (fallback)
+        if not reference_no and user_text and user_text.strip():
+            reference_no = user_text.strip()
+            print(f"DEBUG: Extracted reference_no from direct payload: {reference_no}")
 
         if reference_no:
-            # Here you can implement appeal or detail view logic
-            # For now, just show the selected complaint reference
+            # Clean the reference number
+            reference_no = reference_no.strip()
+
             dispatcher.utter_message(text=f"ቅሬታ {reference_no} ተመርጧል።")
 
-            # You can add buttons for appeal or view details
+            # FIXED: Use simple payloads for Telegram
             buttons = [
-                {"title": "ዝርዝር አሳይ", "payload": f"/view_complaint_detail{{\"reference_no\": \"{reference_no}\"}}"},
-                {"title": "አቤቱታ አስገባ", "payload": f"/appeal_complaint{{\"reference_no\": \"{reference_no}\"}}"},
-                {"title": "ተመለስ", "payload": "/show_my_complaints"}
-
+                {"title": "ዝርዝር አሳይ", "payload": "view_" + reference_no},
+                {"title": "አቤቱታ አስገባ", "payload": "appeal_" + reference_no},
+                {"title": "ተመለስ", "payload": "back_complaints"}
             ]
+
             dispatcher.utter_message(
                 text="ምን ያስፈልግዎታል?",
                 buttons=buttons,
@@ -450,8 +537,13 @@ class ActionViewComplaintDetail(Action):
         user_text = tracker.latest_message.get("text", "")
         reference_no = None
 
-        # Method 1: Extract from payload
-        if "reference_no" in user_text:
+        # Method 1: Extract from "view_" prefix (Telegram-friendly)
+        if user_text.startswith("view_"):
+            reference_no = user_text.replace("view_", "", 1)
+            print(f"DEBUG: Extracted reference_no from view_ prefix: {reference_no}")
+
+        # Method 2: Extract from JSON payload (fallback)
+        if not reference_no and "reference_no" in user_text:
             import re
             match = re.search(r'reference_no\":\s*\"([^\"]+)\"', user_text)
             if match:
@@ -461,14 +553,26 @@ class ActionViewComplaintDetail(Action):
             dispatcher.utter_message(text="እባክዎ ትክክለኛ ቅሬታ ይምረጡ።")
             return []
 
-        access_token = GlobalVariables.access_token
+        # Find the complaint ID from stored user_complaints data
+        user_complaints = tracker.get_slot("user_complaints") or []
+        complaint_id = None
+        for complaint in user_complaints:
+            if isinstance(complaint, dict) and complaint.get("reference_no") == reference_no:
+                complaint_id = complaint.get("id")
+                break
+
+        if not complaint_id:
+            dispatcher.utter_message(text="ቅሬታ ዝርዝሮችን ለማሳየት አልተሳካም።")
+            return []
+
+        access_token = access_token1
 
         if not access_token:
             send_login_register_buttons(dispatcher, tracker)
             return []
 
         try:
-            api_url = f"https://court-api.zorcloud.net/complaints/{reference_no}"
+            api_url = f"https://court-api.zorcloud.net/complaints/{complaint_id}"
             headers = {
                 "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json"
@@ -486,10 +590,10 @@ class ActionViewComplaintDetail(Action):
             current_status = complaint_data.get("current_status", {}).get("name", "ያልተለመደ")
             dispatcher.utter_message(text=f"የቅሬታ ሁኔታ: {current_status}")
 
-            # Show buttons for appeal and temeles
+            # Show buttons for appeal and back (Telegram-friendly payloads)
             buttons = [
-                {"title": "አቤቱታ አስገባ", "payload": f"/appeal_complaint{{\"reference_no\": \"{reference_no}\"}}"},
-                {"title": "ተመለስ", "payload": "/show_my_complaints"}
+                {"title": "አቤቱታ አስገባ", "payload": "appeal_" + reference_no},
+                {"title": "ተመለስ", "payload": "back_complaints"}
             ]
             dispatcher.utter_message(
                 text="ምን ያስፈልግዎታል?",
@@ -516,8 +620,13 @@ class ActionAppealComplaint(Action):
         user_text = tracker.latest_message.get("text", "")
         reference_no = None
 
-        # Method 1: Extract from payload
-        if "reference_no" in user_text:
+        # Method 1: Extract from "appeal_" prefix (Telegram-friendly)
+        if user_text.startswith("appeal_"):
+            reference_no = user_text.replace("appeal_", "", 1)
+            print(f"DEBUG: Extracted reference_no from appeal_ prefix: {reference_no}")
+
+        # Method 2: Extract from JSON payload (fallback)
+        if not reference_no and "reference_no" in user_text:
             import re
             match = re.search(r'reference_no\":\s*\"([^\"]+)\"', user_text)
             if match:
@@ -527,7 +636,7 @@ class ActionAppealComplaint(Action):
             dispatcher.utter_message(text="እባክዎ ትክክለኛ ቅሬታ ይምረጡ።")
             return []
 
-        access_token = GlobalVariables.access_token
+        access_token = access_token1
 
         if not access_token:
             dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ።")
@@ -541,51 +650,34 @@ class ActionAppealComplaint(Action):
             SlotSet("is_appeal", True),
             FollowupAction("action_show_my_complaints")
         ]
+# class ActionCheckAuth(Action):
+#     def name(self) -> Text:
+#         return "action_check_auth"
 
-# =============== OTHER ACTIONS (Keep as before) ===============
-class ActionCheckAuth(Action):
-    def name(self) -> Text:
-        return "action_check_auth"
+#     def run(self, dispatcher, tracker, domain):
 
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        
-        access_token = GlobalVariables.access_token
-        print(f"DEBUG: ActionCheckAuth - access_token: {access_token[:20] if access_token else None}")
+#         # ✅ ALWAYS read from slot
+#         access_token = tracker.get_slot("access_token")
+#         print(f"DEBUG: ActionCheckAuth - access_token: {access_token[:20] if access_token else None}")
 
-        if access_token:
-            dispatcher.utter_message(text="✅ አስቀድመው ገብተዋል። ቅሬታ ማስገባት ይችላሉ።")
-            return [FollowupAction("clarification_form_am")]
-        else:
-            buttons = [
-                {"title": "📝 ምዝገባ", "payload": "/register"},
-                {"title": "🔐 መግባት", "payload": "/login"},
-                {"title": "❌ ሰርዝ", "payload": "/cancel"}
-            ]
-            dispatcher.utter_message(
-                text="📋 ቅሬታ ለመግባት መመዝገብ ወይም መግባት ያስፈልግዎታል።",
-                buttons=buttons
-            )
-            return []
+#         if access_token:
+#             # dispatcher.utter_message(
+#             #     text="✅ አስቀድመው ገብተዋል። ቅሬታ ማስገባት ይችላሉ።")
+            
+#             return [FollowupAction("clarification_form_am")]
 
-class ActionResetSlots(Action):
-    def name(self) -> Text:
-        return "action_reset_slots"
+#         buttons = [
+#             {"title": "📝 ምዝገባ", "payload": "/register"},
+#             {"title": "🔐 መግባት", "payload": "/login"},
+#             # {"title": "❌ ሰርዝ", "payload": "/cancel"}
+#         ]
 
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        
-        return [
-            SlotSet("phone", None),
-            SlotSet("password", None),
-            SlotSet("access_token", None),
-            SlotSet("user_id", None),
-            SlotSet("is_registered", False),
-            SlotSet("is_logged_in", False)
-        ]
-    
+#         dispatcher.utter_message(
+#             text="📋 የቅሬታ አገልግሎት ለማግኘት መመዝገብ ወይም መግባት ያስፈልግዎታል።",
+#             buttons=buttons
+#         )
+#         return []
+
 
 class Actioncheck_ref_numberAm(Action):
     def name(self) -> Text:
@@ -717,8 +809,209 @@ class clarificationformAm(FormAction):
         return [{
             "case_number": [
                 self.from_text(),
-            ],},FollowupAction("action_reset_all_slots")]
+            ],},FollowupAction()]
 
+# class ActionFetchcourt_leveles(Action):
+#     def name(self):
+#         return "action_fetch_court_leveles"
+    
+#     def run(
+#         self,
+#         dispatcher: CollectingDispatcher,
+#         tracker: Tracker,
+#         domain: Dict[Text, Any],
+#     ) -> List[Dict]:
+#         """Fetch court_leveles from API using access token and display as buttons"""
+        
+#         try:
+#             # Get access token from slot
+#             access_token = tracker.get_slot("access_token")
+#             access_token=access_token1
+#             print(f"Access Token court_leveles: {access_token1}")
+            
+#             if not access_token:
+#                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
+#                 return []  # Just return empty, don't force login
+            
+#             # API endpoint
+#             api_url = "https://court-api.zorcloud.net/court-levels" 
+            
+#             # Prepare headers with authorization
+#             headers = {
+#                 "Authorization": f"Bearer {access_token}",
+#                 "Content-Type": "application/json"
+#             }
+            
+#             # Make authenticated API call
+#             response = requests.get(api_url, headers=headers, timeout=10)
+            
+#             # Check for authentication errors
+#             if response.status_code == 401 or response.status_code == 403:
+#                 dispatcher.utter_message(text="መግባትዎ ጊዜው አልቋል፣ እባክዎ እንደገና ይግቡ")
+#                 return []
+            
+#             # if response.status_code != 200 or response.status_code != 201:
+#             #     dispatcher.utter_message(text=f"ስህተት: ኮድ {response.status_code}")
+#             #     return []
+            
+#             court_leveles = response.json()
+            
+#             if not court_leveles:
+#                 dispatcher.utter_message(text="ምንም ቅርንጫፍ የለም")
+#                 return []
+            
+#             buttons = []
+
+#             # Handle response format
+#             if isinstance(court_leveles, dict) and "data" in court_leveles:
+#                 court_leveles_list = court_leveles["data"]
+#             else:
+#                 court_leveles_list = court_leveles
+            
+#             for court_level in court_leveles_list:
+#                 bname = court_level.get("name", "Unknown court_level")
+#                 bid = court_level.get("id")
+
+#                 if bid:
+#                     # payload = "/select_court_level{\"court_level_id\": \"" + bid + "\"}"
+#                     payload = f"/select_court_level{{\"court_level_id\": \"{bid}\"}}"
+#                     buttons.append({"title": bname, "payload": payload})
+            
+#             if not buttons:
+#                 dispatcher.utter_message(text="ምንም ቅርንጫፍ አልተገኘም")
+#                 return []
+            
+#             # Display message with buttons
+#             message = "እባክዎን ቅርንጫፍ ይምረጡ:"
+#             dispatcher.utter_message(text=message, buttons=buttons, button_type="vertical")
+            
+#             # Store court_leveles data
+#             court_level_data = []
+#             for court_level in court_leveles_list:
+#                 if court_level.get("id"):
+#                     court_level_data.append({
+#                         "id": court_level.get("id"),
+#                         "name": court_level.get("name", ""),
+#                         "description": court_level.get("description", ""),
+#                         "court_level": court_level.get("court_level", {}).get("name", "") if isinstance(court_level.get("court_level"), dict) else ""
+#                     })
+            
+#             # CRITICAL: Just return the slot, NO FollowupAction!
+#             return []
+            
+#         except requests.exceptions.Timeout:
+#             dispatcher.utter_message(text="ጊዜ አልቋል")
+#             return []
+#         except Exception as e:
+#             print(f"Error: {e}")
+#             dispatcher.utter_message(text="ስህተት ተፈጥሯል")
+#             return []
+#         except requests.exceptions.ConnectionError:
+#             dispatcher.utter_message(text="መስመሩ ዝግ ነው!")
+#             return []
+#         except requests.exceptions.Timeout:
+#             dispatcher.utter_message(text="ጥያቄው ጊዜው አልቋል፣ እባክዎ እንደገና ይሞክሩ")
+#             return []
+#         except json.JSONDecodeError:
+#             dispatcher.utter_message(text="መልሱ ስህተት አለበት")
+#             return []
+#         except Exception as e:
+#             print(f"Error: {str(e)}")  # Log for debugging
+#             dispatcher.utter_message(text="ስህተት ተፈጥሯል")
+#             return []
+class ActionSavecourt_level(Action):
+    def name(self) -> Text:
+        return "action_save_court_level"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        """Save the selected court_level ID"""
+
+        user_text = tracker.latest_message.get("text", "")
+        print(f"DEBUG: Saving court level, user input: {user_text}")
+
+        court_level_id = None
+
+        # Method 1: Extract from pattern "court_level_id{id}"
+        if user_text.startswith("court_level_id"):
+            # Extract everything after "court_level_id"
+            court_level_id = user_text.replace("court_level_id", "", 1)
+            print(f"DEBUG: Extracted ID from prefix: {court_level_id}")
+        
+        # Method 2: Extract from any position in text
+        if not court_level_id and "court_level_id" in user_text:
+            # If pattern is somewhere in the middle: "some text court_level_id{id} more text"
+            parts = user_text.split("court_level_id")
+            if len(parts) > 1:
+                # The ID is everything after "court_level_id" until next space or end
+                court_level_id = parts[1].strip()
+                # Remove any trailing characters that might be part of other text
+                if " " in court_level_id:
+                    court_level_id = court_level_id.split(" ")[0]
+                print(f"DEBUG: Extracted ID from middle: {court_level_id}")
+
+        if court_level_id:
+            # Clean up - remove any non-alphanumeric characters (except hyphens for UUID)
+            import re
+            # Keep only UUID format characters: a-f, 0-9, and hyphens
+            court_level_id = re.sub(r'[^a-f0-9\-]', '', court_level_id.lower())
+            
+            # Validate it looks like a UUID
+            if re.match(r'^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', court_level_id):
+                print(f"DEBUG: Valid court_level_id found: {court_level_id}")
+                dispatcher.utter_message(text="✅ የፍ/ቤት ደረጃ ተመርጧል")
+                
+                # Save court level ID for fetching branches
+                return [
+                    SlotSet("court_level_id", court_level_id),
+                    FollowupAction("action_fetch_branches_by_court_level")
+                ]
+            else:
+                print(f"DEBUG: Invalid UUID format: {court_level_id}")
+
+        dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን የፍ/ቤት ደረጃዎች ይምረጡ")
+        return []
+# class ActionSavecourt_level(Action):
+#     def name(self) -> Text:
+#         return "action_save_court_level"
+
+#     def run(self, dispatcher: CollectingDispatcher,
+#             tracker: Tracker,
+#             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+#         """Save the selected court_level ID"""
+
+#         user_text = tracker.latest_message.get("text", "")
+#         print(f"DEBUG: Saving court level, user input: {user_text}")
+
+#         # Extract court_level_id from entity
+#         # court_level_id = None
+
+#         # Method 1: Check entities from intent
+#         for entity in tracker.latest_message.get("entities", []):
+#             if entity["entity"] == "court_level_id":
+#                 court_level_id = entity["value"]
+#                 break
+
+#         # Method 2: Extract from button payload
+#         if not court_level_id and "court_level_id" in user_text:
+#             import re
+#             match = re.search(r'court_level_id\":\s*\"([^\"]+)\"', user_text)
+#             if match:
+#                 court_level_id = match.group(1)
+
+#         if court_level_id:
+#             # Find court level name for confirmation
+#             dispatcher.utter_message(text="✅ የፍ/ቤት ደረጃ ተመርጧል")
+
+#             # Save court level ID for fetching branches
+#             return [
+#                 SlotSet("court_level_id", court_level_id),
+#                 FollowupAction("action_fetch_branches_by_court_level")
+#             ]
+
+#         dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን የፍ/ቤት ደረጃዎች ይምረጡ")
+#         return []
 class ActionFetchcourt_leveles(Action):
     def name(self):
         return "action_fetch_court_leveles"
@@ -734,11 +1027,12 @@ class ActionFetchcourt_leveles(Action):
         try:
             # Get access token from slot
             access_token = tracker.get_slot("access_token")
-            print(f"Access Token: {access_token}")
+            access_token=access_token1
+            print(f"Access Token court_leveles: {access_token1}")
             
             if not access_token:
                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
-                return []  # Just return empty, don't force login
+                return []
             
             # API endpoint
             api_url = "https://court-api.zorcloud.net/court-levels" 
@@ -756,10 +1050,6 @@ class ActionFetchcourt_leveles(Action):
             if response.status_code == 401 or response.status_code == 403:
                 dispatcher.utter_message(text="መግባትዎ ጊዜው አልቋል፣ እባክዎ እንደገና ይግቡ")
                 return []
-            
-            # if response.status_code != 200 or response.status_code != 201:
-            #     dispatcher.utter_message(text=f"ስህተት: ኮድ {response.status_code}")
-            #     return []
             
             court_leveles = response.json()
             
@@ -780,95 +1070,36 @@ class ActionFetchcourt_leveles(Action):
                 bid = court_level.get("id")
 
                 if bid:
-                    payload = f"/select_court_level {bid}"
+                    # USE THE WORKING PATTERN from your other action
+                    # Format: "court_level_id" + bid (simple concatenation)
+                    payload = "court_level_id" + bid
                     buttons.append({"title": bname, "payload": payload})
             
             if not buttons:
                 dispatcher.utter_message(text="ምንም ቅርንጫፍ አልተገኘም")
                 return []
             
-            # Display message with buttons
+            # Display message with buttons - SAME FORMAT as working action
             message = "እባክዎን ቅርንጫፍ ይምረጡ:"
             dispatcher.utter_message(text=message, buttons=buttons, button_type="vertical")
             
-            # Store court_leveles data
-            court_level_data = []
-            for court_level in court_leveles_list:
-                if court_level.get("id"):
-                    court_level_data.append({
-                        "id": court_level.get("id"),
-                        "name": court_level.get("name", ""),
-                        "description": court_level.get("description", ""),
-                        "court_level": court_level.get("court_level", {}).get("name", "") if isinstance(court_level.get("court_level"), dict) else ""
-                    })
-            
-            # CRITICAL: Just return the slot, NO FollowupAction!
             return []
             
         except requests.exceptions.Timeout:
             dispatcher.utter_message(text="ጊዜ አልቋል")
             return []
-        except Exception as e:
-            print(f"Error: {e}")
-            dispatcher.utter_message(text="ስህተት ተፈጥሯል")
-            return []
         except requests.exceptions.ConnectionError:
             dispatcher.utter_message(text="መስመሩ ዝግ ነው!")
-            return []
-        except requests.exceptions.Timeout:
-            dispatcher.utter_message(text="ጥያቄው ጊዜው አልቋል፣ እባክዎ እንደገና ይሞክሩ")
             return []
         except json.JSONDecodeError:
             dispatcher.utter_message(text="መልሱ ስህተት አለበት")
             return []
         except Exception as e:
-            print(f"Error: {str(e)}")  # Log for debugging
+            print(f"Error: {str(e)}")
             dispatcher.utter_message(text="ስህተት ተፈጥሯል")
             return []
 
-class ActionSavecourt_level(Action):
-    def name(self) -> Text:
-        return "action_save_court_level"
-
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        """Save the selected court_level ID"""
-
-        user_text = tracker.latest_message.get("text", "")
-        print(f"DEBUG: Saving court level, user input: {user_text}")
-
-        # Extract court_level_id from entity
-        court_level_id = None
-
-        # Method 1: Check entities from intent
-        for entity in tracker.latest_message.get("entities", []):
-            if entity["entity"] == "court_level_id":
-                court_level_id = entity["value"]
-                break
-
-        # Method 2: Extract from button payload
-        if not court_level_id and "court_level_id" in user_text:
-            import re
-            match = re.search(r'court_level_id\":\s*\"([^\"]+)\"', user_text)
-            if match:
-                court_level_id = match.group(1)
-
-        if court_level_id:
-            # Find court level name for confirmation
-            dispatcher.utter_message(text="✅ የፍ/ቤት ደረጃ ተመርጧል")
-
-            # Save court level ID for fetching branches
-            return [
-                SlotSet("court_level_id", court_level_id),
-                FollowupAction("action_fetch_branches_by_court_level")
-            ]
-
-        dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን የፍ/ቤት ደረጃዎች ይምረጡ")
-        return []
-
-
-class ActionFetchBranchesByCourtLevel(Action):
+class ActionFetchBranchesBycourt_level_id(Action):
     def name(self):
         return "action_fetch_branches_by_court_level"
     
@@ -882,11 +1113,11 @@ class ActionFetchBranchesByCourtLevel(Action):
         
         try:
             # Get access token and court level ID
-            access_token = GlobalVariables.access_token
+            # access_token = tracker.get_slot("access_token")
             court_level_id = tracker.get_slot("court_level_id")
-            
+            access_token= access_token1
             print(f"DEBUG: Court Level ID: {court_level_id}")
-            print(f"DEBUG: Access Token: {access_token[:50]}...")
+            print(f"DEBUG: Access Token: {access_token[:50] if access_token else 'None'}...")
             
             if not access_token:
                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
@@ -906,15 +1137,27 @@ class ActionFetchBranchesByCourtLevel(Action):
             }
             
             response = requests.get(api_url, headers=headers, timeout=10)
-            
-            # if response.status_code != 200 :
-            #     dispatcher.utter_message(text=f"ስህተት: ኮድ {response.status_code}")
-            #     return []
-            
+
+            if response.status_code != 200:
+                dispatcher.utter_message(text=f"ስህተት: ኮድ {response.status_code}")
+                return []
+
             branches = response.json()
 
+            if branches is None:
+                dispatcher.utter_message(text="ለዚህ የፍ/ቤት ደረጃ ቅርንጫፍ የለም")
+                return []
+
+            # Handle response format
+            if isinstance(branches, dict) and "data" in branches:
+                branches = branches["data"]
+
+            if branches is None:
+                dispatcher.utter_message(text="ለዚህ የፍ/ቤት ደረጃ ቅርንጫፍ የለም")
+                return []
+
             # Check for API error responses
-            if isinstance(branches, dict) and not branches.get("success", True):
+            if isinstance(branches, dict) and "success" in branches and not branches.get("success", True):
                 error_message = branches.get("message", "API error occurred")
                 print(f"DEBUG: API Error: {error_message}")
                 dispatcher.utter_message(text=f"ስህተት: {error_message}")
@@ -937,7 +1180,9 @@ class ActionFetchBranchesByCourtLevel(Action):
                 bid = branch.get("id")
 
                 if bid:
-                    payload = "/select_branch{\"branch_id\": \"" + bid + "\"}"
+                    # payload = "/select_branch{\"branch_id\": \"" + bid + "\"}"
+                    payload = "select_branch" + bid
+
                     buttons.append({"title": bname, "payload": payload})
             
             if not buttons:
@@ -970,6 +1215,60 @@ class ActionFetchBranchesByCourtLevel(Action):
             dispatcher.utter_message(text="ስህተት ተፈጥሯል")
             return []
 
+# class ActionSaveBranch(Action):
+#     def name(self) -> Text:
+#         return "action_save_branch"
+
+#     def run(self, dispatcher: CollectingDispatcher,
+#             tracker: Tracker,
+#             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+#         user_text = tracker.latest_message.get("text", "")
+#         print(f"DEBUG: Saving branch, user input: {user_text}")
+
+#         # Extract branch_id from entity
+#         branch_id = None
+
+#         # Method 1: Check entities from intent
+#         for entity in tracker.latest_message.get("entities", []):
+#             if entity["entity"] == "branch_id":
+#                 branch_id = entity["value"]
+#                 break
+
+#         # Method 2: Extract from button payload
+#         if not branch_id and "branch_id" in user_text:
+#             import re
+#             match = re.search(r'branch_id\":\s*\"([^\"]+)\"', user_text)
+#             if match:
+#                 branch_id = match.group(1)
+
+#         # Method 3: Fallback to simple extraction
+#         if not branch_id and "inform" in user_text:
+#             parts = user_text.split("inform")
+#             if len(parts) > 1:
+#                 branch_id = parts[1]
+
+#         if branch_id:
+#             # Find branch name for confirmation
+#             dispatcher.utter_message(text="✅ ቅርንጫፍ ተመርጧል")
+
+#             # Save branch ID for fetching court main services
+#             # Clear any previously selected organization slots to ensure they are re-selected for the new branch
+#             return [
+#                 SlotSet("branch_id", branch_id),
+#                 SlotSet("court_main_service_id", None),
+#                 SlotSet("subunit_one_id", None),
+#                 SlotSet("subunit_two_id", None),
+#                 SlotSet("subunit_three_id", None),
+#                 SlotSet("available_court_main_services", None),
+#                 SlotSet("available_subunits", None),
+#                 SlotSet("available_subunit_twos", None),
+#                 SlotSet("available_subunit_threes", None),
+#                 FollowupAction("action_fetch_court_main_services")
+#             ]
+
+#         dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን ቅርንጫፎች ይምረጡ")
+#         return []
 class ActionSaveBranch(Action):
     def name(self) -> Text:
         return "action_save_branch"
@@ -990,41 +1289,198 @@ class ActionSaveBranch(Action):
                 branch_id = entity["value"]
                 break
 
-        # Method 2: Extract from button payload
+        # Method 2: Extract from button payload with JSON format
         if not branch_id and "branch_id" in user_text:
             import re
             match = re.search(r'branch_id\":\s*\"([^\"]+)\"', user_text)
             if match:
                 branch_id = match.group(1)
 
-        # Method 3: Fallback to simple extraction
+        # Method 3: Extract from "select_branch" prefix (NEW - for your pattern)
+        if not branch_id and user_text.startswith("select_branch"):
+            # Extract everything after "select_branch"
+            branch_id = user_text.replace("select_branch", "", 1)
+            print(f"DEBUG: Extracted from select_branch prefix: {branch_id}")
+
+        # Method 4: Fallback to old "inform" pattern
         if not branch_id and "inform" in user_text:
             parts = user_text.split("inform")
             if len(parts) > 1:
                 branch_id = parts[1]
 
+        # Clean and validate the branch_id
         if branch_id:
-            # Find branch name for confirmation
-            dispatcher.utter_message(text="✅ ቅርንጫፍ ተመርጧል")
+            import re
+            # Clean up - remove any non-UUID characters
+            branch_id = re.sub(r'[^a-f0-9\-]', '', branch_id.lower())
+            
+            # Validate UUID format
+            if re.match(r'^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', branch_id):
+                print(f"DEBUG: Valid branch_id found: {branch_id}")
+                
+                # Find branch name for confirmation
+                dispatcher.utter_message(text="✅ ቅርንጫፍ ተመርጧል")
 
-            # Save branch ID for fetching court main services
-            # Clear any previously selected organization slots to ensure they are re-selected for the new branch
-            return [
-                SlotSet("branch_id", branch_id),
-                SlotSet("court_main_service_id", None),
-                SlotSet("subunit_one_id", None),
-                SlotSet("subunit_two_id", None),
-                SlotSet("subunit_three_id", None),
-                SlotSet("available_court_main_services", None),
-                SlotSet("available_subunits", None),
-                SlotSet("available_subunit_twos", None),
-                SlotSet("available_subunit_threes", None),
-                FollowupAction("action_fetch_court_main_services")
-            ]
+                # Save branch ID for fetching court main services
+                # Clear any previously selected organization slots to ensure they are re-selected for the new branch
+                return [
+                    SlotSet("branch_id", branch_id),
+                    SlotSet("court_main_service_id", None),
+                    SlotSet("subunit_one_id", None),
+                    SlotSet("subunit_two_id", None),
+                    SlotSet("subunit_three_id", None),
+                    SlotSet("available_court_main_services", None),
+                    SlotSet("available_subunits", None),
+                    SlotSet("available_subunit_twos", None),
+                    SlotSet("available_subunit_threes", None),
+                    FollowupAction("action_fetch_court_main_services")
+                ]
+            else:
+                print(f"DEBUG: Invalid UUID format: {branch_id}")
 
         dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን ቅርንጫፎች ይምረጡ")
         return []
+# class ActionFetchCourtMainServices(Action):
+#     def name(self):
+#         return "action_fetch_court_main_services"
+    
+#     def run(
+#         self,
+#         dispatcher: CollectingDispatcher,
+#         tracker: Tracker,
+#         domain: Dict[Text, Any],
+#     ) -> List[Dict]:
+#         """Fetch top-level organizations (where parentId is null) as Court Main Services"""
 
+#         try:
+#             access_token = GlobalVariables.access_token
+#             branch_id = tracker.get_slot("branch_id")
+
+#             print(f"DEBUG: Fetching court main services for branch: {branch_id}")
+#             print(f"DEBUG: Access Token: {access_token[:50]}...")
+
+#             if not access_token:
+#                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
+#                 return []
+
+#             if not branch_id:
+#                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ ቅርንጫፍ ይምረጡ")
+#                 return []
+
+#             # API endpoint for organizations filtered by branch_id
+#             api_url = f"https://court-api.zorcloud.net/organizations/branch/{branch_id}"
+
+#             headers = {
+#                 "Authorization": f"Bearer {access_token}",
+#                 "Content-Type": "application/json"
+#             }
+            
+#             # Fetch all organizations
+#             response = requests.get(api_url, headers=headers, timeout=10)
+
+#             if response.status_code not in [200, 201]:
+#                 print(f"DEBUG: API Error - Status: {response.status_code}")
+#                 try:
+#                     error_response = response.json()
+#                     print(f"DEBUG: Error response: {error_response}")
+#                     error_message = error_response.get("message", f"ስህተት: ኮድ {response.status_code}")
+#                     dispatcher.utter_message(text=error_message)
+#                 except json.JSONDecodeError:
+#                     print(f"DEBUG: Non-JSON error response: {response.text}")
+#                     dispatcher.utter_message(text=f"ስህተት: ኮድ {response.status_code}")
+#                 return []
+            
+#             organizations = response.json()
+
+#             print(f"DEBUG: Raw API response: {organizations}")
+#             print(f"DEBUG: Response type: {type(organizations)}")
+
+#             if not organizations:
+#                 dispatcher.utter_message(text="ምንም የፍ/ቤት አገልግሎት የለም")
+#                 return []
+
+#             # Check if response is a flat list of organizations
+#             if isinstance(organizations, list) and organizations and isinstance(organizations[0], dict) and "parentId" in organizations[0]:
+#                 # Direct list of organizations
+#                 print("DEBUG: Detected flat list of organizations")
+#                 all_organizations = organizations
+#             else:
+#                 # Extract actual organizations from the "organizations" arrays within categories
+#                 print("DEBUG: Detected categories with organizations")
+#                 all_organizations = []
+#                 for category in organizations:
+#                     category_orgs = category.get("organizations", [])
+#                     for org in category_orgs:
+#                         # Add category info to each organization
+#                         org["_category_name"] = category.get("name", "")
+#                         org["_category_id"] = category.get("id", "")
+#                         all_organizations.append(org)
+
+#             # Filter organizations where parentId is null (top-level)
+#             top_level_organizations = []
+#             for org in all_organizations:
+#                 if org.get("parentId") is None:
+#                     top_level_organizations.append(org)
+
+#             print(f"DEBUG: Found {len(top_level_organizations)} top-level organizations")
+#             print(f"DEBUG: Total organizations returned: {len(all_organizations)}")
+
+#             # If no top-level organizations found, show all organizations as fallback
+#             if not top_level_organizations and all_organizations:
+#                 print("DEBUG: No top-level organizations found, showing all organizations")
+#                 top_level_organizations = all_organizations
+
+#             if not top_level_organizations:
+#                 dispatcher.utter_message(text="የፍ/ቤት ዋና አገልግሎቶች የሉም")
+#                 return []
+
+#             # Create buttons for each top-level organization
+#             buttons = []
+#             seen_ids = set()
+
+#             for org in top_level_organizations:
+#                 org_id = org.get("id")
+#                 org_name = org.get("name", "የፍ/ቤት አገልግሎት")
+
+#                 if not org_id or org_id in seen_ids:
+#                     continue
+
+#                 seen_ids.add(org_id)
+
+#                 # Create payload with organization ID
+#                 payload = "/select_court_main_service{\"court_main_service_id\": \"" + org_id + "\"}"
+#                 buttons.append({"title": org_name, "payload": payload})
+
+#             if not buttons:
+#                 dispatcher.utter_message(text="ምንም የፍ/ቤት አገልግሎት አልተገኘም")
+#                 return []
+
+#             # Display organizations as buttons
+#             message = "እባክዎን የፍ/ቤት ዋና አገልግሎት ይምረጡ:"
+#             dispatcher.utter_message(text=message, buttons=buttons, button_type="vertical")
+
+#             # Store organizations data for reference
+#             org_data = []
+#             for org in top_level_organizations:
+#                 org_data.append({
+#                     "id": org.get("id"),
+#                     "name": org.get("name"),
+#                     "code": org.get("code"),
+#                     "description": org.get("description"),
+#                     "parentId": org.get("parentId"),
+#                     "category": org.get("_category_name", ""),
+#                     "accepts_complaints": org.get("accepts_complaints", False)
+#                 })
+
+#             return [SlotSet("available_court_main_services", org_data)]
+            
+#         except requests.exceptions.Timeout:
+#             dispatcher.utter_message(text="ጊዜ አልቋል")
+#             return []
+#         except Exception as e:
+#             print(f"Error fetching court main services: {e}")
+#             dispatcher.utter_message(text="ስህተት ተፈጥሯል")
+#             return []
 class ActionFetchCourtMainServices(Action):
     def name(self):
         return "action_fetch_court_main_services"
@@ -1038,10 +1494,10 @@ class ActionFetchCourtMainServices(Action):
         """Fetch top-level organizations (where parentId is null) as Court Main Services"""
 
         try:
-            access_token = GlobalVariables.access_token
+            access_token = access_token1
             branch_id = tracker.get_slot("branch_id")
 
-            print(f"DEBUG: Fetching court main services for branch: {branch_id}")
+            print(f"DEBUG: Fetching court main services by branch: {branch_id}")
             print(f"DEBUG: Access Token: {access_token[:50]}...")
 
             if not access_token:
@@ -1077,38 +1533,22 @@ class ActionFetchCourtMainServices(Action):
             
             organizations = response.json()
 
-            print(f"DEBUG: Raw API response: {organizations}")
-            print(f"DEBUG: Response type: {type(organizations)}")
-
+            # Check if organizations is None or empty
             if not organizations:
+                print("DEBUG: No organizations returned from API")
                 dispatcher.utter_message(text="ምንም የፍ/ቤት አገልግሎት የለም")
                 return []
 
-            # Check if response is a flat list of organizations
-            if isinstance(organizations, list) and organizations and isinstance(organizations[0], dict) and "parentId" in organizations[0]:
-                # Direct list of organizations
-                print("DEBUG: Detected flat list of organizations")
-                all_organizations = organizations
-            else:
-                # Extract actual organizations from the "organizations" arrays within categories
-                print("DEBUG: Detected categories with organizations")
-                all_organizations = []
-                for category in organizations:
-                    category_orgs = category.get("organizations", [])
-                    for org in category_orgs:
-                        # Add category info to each organization
-                        org["_category_name"] = category.get("name", "")
-                        org["_category_id"] = category.get("id", "")
-                        all_organizations.append(org)
+            # Based on your API response, it's a list of organizations
+            all_organizations = organizations if isinstance(organizations, list) else []
 
             # Filter organizations where parentId is null (top-level)
             top_level_organizations = []
             for org in all_organizations:
-                if org.get("parentId") is None:
+                if isinstance(org, dict) and org.get("parentId") is None:
                     top_level_organizations.append(org)
 
             print(f"DEBUG: Found {len(top_level_organizations)} top-level organizations")
-            print(f"DEBUG: Total organizations returned: {len(all_organizations)}")
 
             # If no top-level organizations found, show all organizations as fallback
             if not top_level_organizations and all_organizations:
@@ -1132,8 +1572,13 @@ class ActionFetchCourtMainServices(Action):
 
                 seen_ids.add(org_id)
 
-                # Create payload with organization ID
-                payload = "/select_court_main_service{\"court_main_service_id\": \"" + org_id + "\"}"
+                # FIX: Telegram-friendly button payload
+                # Keep it short and simple - just the ID
+                # payload = org_id  # Just use the UUID
+                
+                # Or if you need a prefix, keep it very short:
+                payload = "cms_" + org_id  # 3-4 char prefix
+                
                 buttons.append({"title": org_name, "payload": payload})
 
             if not buttons:
@@ -1144,29 +1589,54 @@ class ActionFetchCourtMainServices(Action):
             message = "እባክዎን የፍ/ቤት ዋና አገልግሎት ይምረጡ:"
             dispatcher.utter_message(text=message, buttons=buttons, button_type="vertical")
 
-            # Store organizations data for reference
-            org_data = []
-            for org in top_level_organizations:
-                org_data.append({
-                    "id": org.get("id"),
-                    "name": org.get("name"),
-                    "code": org.get("code"),
-                    "description": org.get("description"),
-                    "parentId": org.get("parentId"),
-                    "category": org.get("_category_name", ""),
-                    "accepts_complaints": org.get("accepts_complaints", False)
-                })
-
-            return [SlotSet("available_court_main_services", org_data)]
+            return [SlotSet("available_court_main_services", top_level_organizations)]
             
         except requests.exceptions.Timeout:
             dispatcher.utter_message(text="ጊዜ አልቋል")
             return []
         except Exception as e:
             print(f"Error fetching court main services: {e}")
+            import traceback
+            traceback.print_exc()
             dispatcher.utter_message(text="ስህተት ተፈጥሯል")
             return []
+# class ActionSaveCourtMainService(Action):
+#     def name(self) -> Text:
+#         return "action_save_court_main_service"
+    
+#     def run(self, dispatcher: CollectingDispatcher,
+#             tracker: Tracker,
+#             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+#         """Save the selected court main service ID"""
         
+#         user_text = tracker.latest_message.get("text", "")
+#         print(f"DEBUG: Saving court main service, user input: {user_text}")
+        
+#         # Extract court_main_service_id from entity
+#         court_main_service_id = None
+        
+#         # Method 1: Check entities from intent
+#         for entity in tracker.latest_message.get("entities", []):
+#             if entity["entity"] == "court_main_service_id":
+#                 court_main_service_id = entity["value"]
+#                 break
+        
+#         # Method 2: Extract from button payload
+#         if not court_main_service_id and "court_main_service_id" in user_text:
+#             import re
+#             match = re.search(r'"court_main_service_id":\s*"([^"]+)"', user_text)
+#             if match:
+#                 court_main_service_id = match.group(1)
+
+#         if court_main_service_id:
+#             # Save service ID for fetching subunits
+#             return [
+#                 SlotSet("court_main_service_id", court_main_service_id),
+#                 FollowupAction("action_fetch_subunit_one")  # Next step to fetch children
+#             ]
+
+#         dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን አገልግሎቶች ይምረጡ")
+#         return []
 class ActionSaveCourtMainService(Action):
     def name(self) -> Text:
         return "action_save_court_main_service"
@@ -1174,37 +1644,68 @@ class ActionSaveCourtMainService(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        """Save the selected court main service ID"""
-        
+        """Save the selected court main service ID from button click"""
+
         user_text = tracker.latest_message.get("text", "")
         print(f"DEBUG: Saving court main service, user input: {user_text}")
-        
-        # Extract court_main_service_id from entity
+
         court_main_service_id = None
         
-        # Method 1: Check entities from intent
-        for entity in tracker.latest_message.get("entities", []):
-            if entity["entity"] == "court_main_service_id":
-                court_main_service_id = entity["value"]
-                break
+        # Extract from "cms_" prefix pattern
+        if user_text.startswith("cms_"):
+            # Remove "cms_" prefix to get the UUID
+            court_main_service_id = user_text.replace("cms_", "", 1)
+            print(f"DEBUG: Extracted from cms_ prefix: {court_main_service_id}")
+        else:
+            # Try direct UUID (without prefix)
+            court_main_service_id = user_text.strip()
         
-        # Method 2: Extract from button payload
-        if not court_main_service_id and "court_main_service_id" in user_text:
-            import re
-            match = re.search(r'"court_main_service_id":\s*"([^"]+)"', user_text)
-            if match:
-                court_main_service_id = match.group(1)
-
-        if court_main_service_id:
-            # Save service ID for fetching subunits
+        # Validate it's a UUID
+        import re
+        uuid_pattern = r'^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'
+        
+        if court_main_service_id and re.match(uuid_pattern, court_main_service_id):
+            print(f"DEBUG: Valid court_main_service_id: {court_main_service_id}")
+            dispatcher.utter_message(text="✅ የፍ/ቤት ዋና አገልግሎት ተመርጧል")
+            
+            # Find the organization name from stored data
+            available_services = tracker.get_slot("available_court_main_services") or []
+            service_name = "የፍ/ቤት አገልግሎት"
+            
+            for service in available_services:
+                if isinstance(service, dict) and service.get("id") == court_main_service_id:
+                    service_name = service.get("name", service_name)
+                    break
+            
             return [
                 SlotSet("court_main_service_id", court_main_service_id),
                 FollowupAction("action_fetch_subunit_one")  # Next step to fetch children
             ]
-
-        dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን አገልግሎቶች ይምረጡ")
+        
+        print(f"DEBUG: Invalid court_main_service_id format: {court_main_service_id}")
+        dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን የፍ/ቤት አገልግሎቶች ይምረጡ")
         return []
+# class ActionSaveCourtMainService(Action):
+#     def name(self) -> Text:
+#         return "action_save_court_main_service"
     
+#     def run(self, dispatcher, tracker, domain):
+#         user_text = tracker.latest_message.get("text", "")
+#         print(f"DEBUG: Saving court main service, user input: {user_text}")
+        
+#         court_main_service_id = None
+        
+#         # Extract from "court_main_service" prefix
+#         if user_text.startswith("court_main_service"):
+#             court_main_service_id = user_text.replace("court_main_service", "", 1)
+#             print(f"DEBUG: Extracted court_main_service_id: {court_main_service_id}")
+        
+#         if court_main_service_id:
+#             dispatcher.utter_message(text="✅ የፍ/ቤት ዋና አገልግሎት ተመርጧል")
+#             return [SlotSet("court_main_service_id", court_main_service_id)]
+        
+#         dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን የፍ/ቤት አገልግሎቶች ይምረጡ")
+#         return []
 
 class ActionFetchSubUnitOne(Action):
     def name(self):
@@ -1220,7 +1721,7 @@ class ActionFetchSubUnitOne(Action):
 
         try:
             # Get access token, branch ID and parent service ID
-            access_token = GlobalVariables.access_token
+            access_token = access_token1
             branch_id = tracker.get_slot("branch_id")
             parent_service_id = tracker.get_slot("court_main_service_id")
 
@@ -1312,7 +1813,8 @@ class ActionFetchSubUnitOne(Action):
                 org_name = org.get("name", "ንዑስ ክፍል")
 
                 if org_id:
-                    payload = "/select_subunit_one{\"subunit_one_id\": \"" + org_id + "\"}"
+                    payload = "select_subunit_one" + org_id  # 3-4 char prefix
+
                     buttons.append({"title": org_name, "payload": payload})
 
             # Display subunits as buttons
@@ -1339,6 +1841,63 @@ class ActionFetchSubUnitOne(Action):
             dispatcher.utter_message(text="ስህተት ተፈጥሯል")
             return []
 
+# class ActionSaveSubUnitOne(Action):
+#     def name(self) -> Text:
+#         return "action_save_subunit_one"
+
+#     def run(self, dispatcher: CollectingDispatcher,
+#             tracker: Tracker,
+#             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+#         """Save the selected subunit one ID"""
+
+#         user_text = tracker.latest_message.get("text", "")
+#         print(f"DEBUG: Saving subunit one, user input: {user_text}")
+
+#         # Extract subunit_one_id from entity
+#         subunit_one_id = None
+
+#         # Method 1: Check entities from intent
+#         for entity in tracker.latest_message.get("entities", []):
+#             if entity["entity"] == "subunit_one_id":
+#                 subunit_one_id = entity["value"]
+#                 break
+
+#         # Method 2: Extract from button payload
+#         if not subunit_one_id and "subunit_one_id" in user_text:
+#             import re
+#             match = re.search(r'subunit_one_id\":\s*\"([^\"]+)\"', user_text)
+#             if match:
+#                 subunit_one_id = match.group(1)
+
+#         # Method 3: Fallback to simple extraction
+#         if not subunit_one_id and "subone" in user_text:
+#             parts = user_text.split("subone")
+#             if len(parts) > 1:
+#                 subunit_one_id = parts[1]
+
+#         if subunit_one_id:
+#         # Find subunit name for confirmation
+#             available_subunits = tracker.get_slot("available_subunits") or []
+#             if isinstance(available_subunits, str):
+#                 import json
+#                 available_subunits = json.loads(available_subunits)
+#             subunit_name = "ንዑስ ክፍል"
+
+#             for subunit in available_subunits:
+#                 if isinstance(subunit, dict) and subunit.get("id") == subunit_one_id:
+#                     subunit_name = subunit.get("name", "ንዑስ ክፍል")
+#                     break
+
+#             dispatcher.utter_message(text=f"✅ {subunit_name} ተመርጧል")
+
+#             # Save subunit ID and fetch subunit two
+#             return [
+#                 SlotSet("subunit_one_id", subunit_one_id),
+#                 FollowupAction("action_fetch_subunit_two")  # Next step - fetch subunit two
+#             ]
+
+#         dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን ንዑስ ክፍሎች ይምረጡ")
+#         return []
 class ActionSaveSubUnitOne(Action):
     def name(self) -> Text:
         return "action_save_subunit_one"
@@ -1354,49 +1913,66 @@ class ActionSaveSubUnitOne(Action):
         # Extract subunit_one_id from entity
         subunit_one_id = None
 
-        # Method 1: Check entities from intent
-        for entity in tracker.latest_message.get("entities", []):
-            if entity["entity"] == "subunit_one_id":
-                subunit_one_id = entity["value"]
-                break
+        # Method 1: Extract from "select_subunit_one" prefix (NEW)
+        if user_text.startswith("select_subunit_one"):
+            # Remove "select_subunit_one" prefix to get the UUID
+            subunit_one_id = user_text.replace("select_subunit_one", "", 1)
+            print(f"DEBUG: Extracted from select_subunit_one prefix: {subunit_one_id}")
+        
+        # Method 2: Check entities from intent
+        if not subunit_one_id:
+            for entity in tracker.latest_message.get("entities", []):
+                if entity["entity"] == "subunit_one_id":
+                    subunit_one_id = entity["value"]
+                    break
 
-        # Method 2: Extract from button payload
+        # Method 3: Extract from button payload (JSON format)
         if not subunit_one_id and "subunit_one_id" in user_text:
             import re
             match = re.search(r'subunit_one_id\":\s*\"([^\"]+)\"', user_text)
             if match:
                 subunit_one_id = match.group(1)
 
-        # Method 3: Fallback to simple extraction
+        # Method 4: Fallback to old "subone" pattern
         if not subunit_one_id and "subone" in user_text:
             parts = user_text.split("subone")
             if len(parts) > 1:
                 subunit_one_id = parts[1]
 
+        # Clean and validate the subunit_one_id
         if subunit_one_id:
-        # Find subunit name for confirmation
-            available_subunits = tracker.get_slot("available_subunits") or []
-            if isinstance(available_subunits, str):
-                import json
-                available_subunits = json.loads(available_subunits)
-            subunit_name = "ንዑስ ክፍል"
+            import re
+            # Clean up - remove any non-UUID characters
+            subunit_one_id = re.sub(r'[^a-f0-9\-]', '', subunit_one_id.lower())
+            
+            # Validate UUID format
+            if re.match(r'^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', subunit_one_id):
+                print(f"DEBUG: Valid subunit_one_id found: {subunit_one_id}")
+                
+                # Find subunit name for confirmation
+                available_subunits = tracker.get_slot("available_subunits") or []
+                if isinstance(available_subunits, str):
+                    import json
+                    available_subunits = json.loads(available_subunits)
+                subunit_name = "ንዑስ ክፍል"
 
-            for subunit in available_subunits:
-                if isinstance(subunit, dict) and subunit.get("id") == subunit_one_id:
-                    subunit_name = subunit.get("name", "ንዑስ ክፍል")
-                    break
+                for subunit in available_subunits:
+                    if isinstance(subunit, dict) and subunit.get("id") == subunit_one_id:
+                        subunit_name = subunit.get("name", "ንዑስ ክፍል")
+                        break
 
-            dispatcher.utter_message(text=f"✅ {subunit_name} ተመርጧል")
+                dispatcher.utter_message(text=f"✅ {subunit_name} ተመርጧል")
 
-            # Save subunit ID and fetch subunit two
-            return [
-                SlotSet("subunit_one_id", subunit_one_id),
-                FollowupAction("action_fetch_subunit_two")  # Next step - fetch subunit two
-            ]
+                # Save subunit ID and fetch subunit two
+                return [
+                    SlotSet("subunit_one_id", subunit_one_id),
+                    FollowupAction("action_fetch_subunit_two")  # Next step - fetch subunit two
+                ]
+            else:
+                print(f"DEBUG: Invalid UUID format: {subunit_one_id}")
 
         dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን ንዑስ ክፍሎች ይምረጡ")
         return []
-
 
 class ActionFetchSubUnitTwo(Action):
     def name(self):
@@ -1412,7 +1988,8 @@ class ActionFetchSubUnitTwo(Action):
 
         try:
             # Get access token, branch ID and parent subunit one ID
-            access_token = tracker.get_slot("access_token")
+            access_token = access_token1
+
             branch_id = tracker.get_slot("branch_id")
             parent_subunit_one_id = tracker.get_slot("subunit_one_id")
 
@@ -1484,7 +2061,9 @@ class ActionFetchSubUnitTwo(Action):
                 org_name = org.get("name", "ንዑስ ክፍል ሁለት")
 
                 if org_id:
-                    payload = "/select_subunit_two{\"subunit_two_id\": \"" + org_id + "\"}"
+                    # payload = "/select_subunit_two{\"subunit_two_id\": \"" + org_id + "\"}"
+                    payload = "select_subunit_two" + org_id  # 3-4 char prefix
+
                     buttons.append({"title": org_name, "payload": payload})
 
             # Display subunit two as buttons
@@ -1512,7 +2091,6 @@ class ActionFetchSubUnitTwo(Action):
             dispatcher.utter_message(text="ስህተት ተፈጥሯል")
             return []
 
-
 class ActionSaveSubUnitTwo(Action):
     def name(self) -> Text:
         return "action_save_subunit_two"
@@ -1528,43 +2106,60 @@ class ActionSaveSubUnitTwo(Action):
         # Extract subunit_two_id from entity
         subunit_two_id = None
 
-        # Method 1: Check entities from intent
-        for entity in tracker.latest_message.get("entities", []):
-            if entity["entity"] == "subunit_two_id":
-                subunit_two_id = entity["value"]
-                break
+        # Method 1: Extract from "select_subunit_two" prefix (NEW)
+        if user_text.startswith("select_subunit_two"):
+            # Remove "select_subunit_two" prefix to get the UUID
+            subunit_two_id = user_text.replace("select_subunit_two", "", 1)
+            print(f"DEBUG: Extracted from select_subunit_two prefix: {subunit_two_id}")
+        
+        # Method 2: Check entities from intent
+        if not subunit_two_id:
+            for entity in tracker.latest_message.get("entities", []):
+                if entity["entity"] == "subunit_two_id":
+                    subunit_two_id = entity["value"]
+                    break
 
-        # Method 2: Extract from button payload
+        # Method 3: Extract from button payload (JSON format)
         if not subunit_two_id and "subunit_two_id" in user_text:
             import re
             match = re.search(r'subunit_two_id\":\s*\"([^\"]+)\"', user_text)
             if match:
                 subunit_two_id = match.group(1)
 
+        # Clean and validate the subunit_two_id
         if subunit_two_id:
-        # Find subunit two name for confirmation
-            available_subunit_twos = tracker.get_slot("available_subunit_twos") or []
-            if isinstance(available_subunit_twos, str):
-                import json
-                available_subunit_twos = json.loads(available_subunit_twos)
-            subunit_two_name = "ንዑስ ክፍል ሁለት"
+            import re
+            # Clean up - remove any non-UUID characters
+            subunit_two_id = re.sub(r'[^a-f0-9\-]', '', subunit_two_id.lower())
+            
+            # Validate UUID format
+            if re.match(r'^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', subunit_two_id):
+                print(f"DEBUG: Valid subunit_two_id found: {subunit_two_id}")
+                
+                # Find subunit two name for confirmation
+                available_subunit_twos = tracker.get_slot("available_subunit_twos") or []
+                if isinstance(available_subunit_twos, str):
+                    import json
+                    available_subunit_twos = json.loads(available_subunit_twos)
+                subunit_two_name = "ንዑስ ክፍል ሁለት"
 
-            for subunit in available_subunit_twos:
-                if isinstance(subunit, dict) and subunit.get("id") == subunit_two_id:
-                    subunit_two_name = subunit.get("name", "ንዑስ ክፍል ሁለት")
-                    break
+                for subunit in available_subunit_twos:
+                    if isinstance(subunit, dict) and subunit.get("id") == subunit_two_id:
+                        subunit_two_name = subunit.get("name", "ንዑስ ክፍል ሁለት")
+                        break
 
-            dispatcher.utter_message(text=f"✅ {subunit_two_name} ተመርጧል")
+                dispatcher.utter_message(text=f"✅ {subunit_two_name} ተመርጧል")
 
-            # Save subunit two ID and fetch subunit three
-            return [
-                SlotSet("subunit_two_id", subunit_two_id),
-                FollowupAction("action_fetch_subunit_three")  # Next step - fetch subunit three
-            ]
+                # Save subunit two ID and fetch subunit three
+                return [
+                    SlotSet("subunit_two_id", subunit_two_id),
+                    FollowupAction("action_fetch_subunit_three")  # Next step - fetch subunit three
+                ]
+            else:
+                print(f"DEBUG: Invalid UUID format: {subunit_two_id}")
 
         dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን ንዑስ ክፍሎች ሁለት ይምረጡ")
         return []
-
 
 class ActionFetchSubUnitThree(Action):
     def name(self):
@@ -1580,7 +2175,7 @@ class ActionFetchSubUnitThree(Action):
 
         try:
             # Get access token, branch ID and parent subunit two ID
-            access_token = GlobalVariables.access_token
+            access_token = access_token1
             branch_id = tracker.get_slot("branch_id")
             parent_subunit_two_id = tracker.get_slot("subunit_two_id")
 
@@ -1672,7 +2267,9 @@ class ActionFetchSubUnitThree(Action):
                 org_name = org.get("name", "ንዑስ ክፍል ሶስት")
 
                 if org_id:
-                    payload = "/select_subunit_three{\"subunit_three_id\": \"" + org_id + "\"}"
+                    # payload = "/select_subunit_three{\"subunit_three_id\": \"" + org_id + "\"}"
+                    payload = "select_subunit_three" + org_id  # 3-4 char prefix
+
                     buttons.append({"title": org_name, "payload": payload})
 
             # Display subunit three as buttons
@@ -1699,7 +2296,6 @@ class ActionFetchSubUnitThree(Action):
             dispatcher.utter_message(text="ስህተት ተፈጥሯል")
             return []
 
-
 class ActionSaveSubUnitThree(Action):
     def name(self) -> Text:
         return "action_save_subunit_three"
@@ -1715,58 +2311,75 @@ class ActionSaveSubUnitThree(Action):
         # Extract subunit_three_id from entity
         subunit_three_id = None
 
-        # Method 1: Check entities from intent
-        for entity in tracker.latest_message.get("entities", []):
-            if entity["entity"] == "subunit_three_id":
-                subunit_three_id = entity["value"]
-                break
+        # Method 1: Extract from "select_subunit_three" prefix (NEW)
+        if user_text.startswith("select_subunit_three"):
+            # Remove "select_subunit_three" prefix to get the UUID
+            subunit_three_id = user_text.replace("select_subunit_three", "", 1)
+            print(f"DEBUG: Extracted from select_subunit_three prefix: {subunit_three_id}")
+        
+        # Method 2: Check entities from intent
+        if not subunit_three_id:
+            for entity in tracker.latest_message.get("entities", []):
+                if entity["entity"] == "subunit_three_id":
+                    subunit_three_id = entity["value"]
+                    break
 
-        # Method 2: Extract from button payload
+        # Method 3: Extract from button payload (JSON format)
         if not subunit_three_id and "subunit_three_id" in user_text:
             import re
             match = re.search(r'subunit_three_id\":\s*\"([^\"]+)\"', user_text)
             if match:
                 subunit_three_id = match.group(1)
 
+        # Clean and validate the subunit_three_id
         if subunit_three_id:
-        # Find subunit three name for confirmation
-            available_subunit_threes = tracker.get_slot("available_subunit_threes") or []
-            if isinstance(available_subunit_threes, str):
-                import json
-                available_subunit_threes = json.loads(available_subunit_threes)
-            subunit_three_name = "ንዑስ ክፍል ሶስት"
+            import re
+            # Clean up - remove any non-UUID characters
+            subunit_three_id = re.sub(r'[^a-f0-9\-]', '', subunit_three_id.lower())
+            
+            # Validate UUID format
+            if re.match(r'^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', subunit_three_id):
+                print(f"DEBUG: Valid subunit_three_id found: {subunit_three_id}")
+                
+                # Find subunit three name for confirmation
+                available_subunit_threes = tracker.get_slot("available_subunit_threes") or []
+                if isinstance(available_subunit_threes, str):
+                    import json
+                    available_subunit_threes = json.loads(available_subunit_threes)
+                subunit_three_name = "ንዑስ ክፍል ሶስት"
 
-            for subunit in available_subunit_threes:
-                if isinstance(subunit, dict) and subunit.get("id") == subunit_three_id:
-                    subunit_three_name = subunit.get("name", "ንዑስ ክፍል ሶስት")
-                    break
+                for subunit in available_subunit_threes:
+                    if isinstance(subunit, dict) and subunit.get("id") == subunit_three_id:
+                        subunit_three_name = subunit.get("name", "ንዑስ ክፍል ሶስት")
+                        break
 
-            dispatcher.utter_message(text=f"✅ {subunit_three_name} ተመርጧል")
+                dispatcher.utter_message(text=f"✅ {subunit_three_name} ተመርጧል")
 
-            # Save subunit three ID and go to ask attachment
-            return [
-                SlotSet("subunit_three_id", subunit_three_id),
-                FollowupAction("action_ask_attachment")
-            ]
+                # Save subunit three ID and go to ask attachment
+                return [
+                    SlotSet("subunit_three_id", subunit_three_id),
+                    FollowupAction("content_compliant_form") ]
+            else:
+                print(f"DEBUG: Invalid UUID format: {subunit_three_id}")
 
         dispatcher.utter_message(text="እባክዎ ከላይ ያሉትን ንዑስ ክፍሎች ሶስት ይምረጡ")
         return []
 
 
-class ActionAskAttachment(Action):
-    def name(self) -> Text:
-        return "action_ask_attachment"
+# class ActionAskAttachment(Action):
+#     def name(self) -> Text:
+#         return "action_ask_attachment"
 
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+#     def run(self, dispatcher: CollectingDispatcher,
+#             tracker: Tracker,
+#             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        buttons = [
-            {"title": "አዎ", "payload": "/affirm"},
-            {"title": "አይ", "payload": "/deny"}
-        ]
-        dispatcher.utter_message(text="አባር ለቅሬታዎ ያለው ማብራሪያ አለዎት?", buttons=buttons, button_type="vertical")
-        return []
+#         buttons = [
+#             {"title": "አዎ", "payload": "/affirm"},
+#             {"title": "አይ", "payload": "/deny"}
+#         ]
+#         dispatcher.utter_message(text="አባር ለቅሬታዎ ያለው ማብራሪያ አለዎት?", buttons=buttons, button_type="vertical")
+#         return []
 
 
 class ActionSaveAttachment(Action):
@@ -2038,22 +2651,63 @@ class ActionSubmitcompliant(Action):
 
         print("data is", data)
         try:
+            # Get access token from slot
+            # access_token = tracker.get_slot("access_token")
+            access_token=access_token1
+            print(f"Access Token court_leveles: {access_token}")
+            
+            if not access_token:
+                dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
+                return []
+            
+            # API endpoint
+            api_url = "https://court-api.zorcloud.net/court-levels" 
+            
+            # Prepare headers with authorization
             headers = {
-                "Authorization": f"Bearer {GlobalVariables.access_token}",
+                "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json"
             }
+            
+            # Make authenticated API call
+            # response = requests.get(api_url, headers=headers, timeout=10)
+            
             if connected_to_internet(url=url):
                 print("checking")
                 response_text = requests.post(url, json=data, headers=headers, timeout=50)
+                # access_token=access_token1
                 if response_text.status_code == 201:
                     response_json = json.loads(response_text.text)
                     dispatcher.utter_message("ከእኛ ጋር ስላደረጉት ቆይታ እናመሰግናለን.")
                     reference_number = response_json.get('reference_no', 'N/A')
                     compalint_id = response_json.get('id', 'N/A')
                     print(reference_number)
-                    dispatcher.utter_message(" ቅሬታህን ተቀብለናል ,ለሚመለከተው ክፍል እናደርሳለን" +"\n"+ str (reference_number) +"\n"+ "በዚህ ቁጥር የአቤቱታ ሁኔታዎን መከታተል ይችላሉ.")
+                    dispatcher.utter_message(" ቅሬታህን ተቀብለናል ,ለሚመለከተው ክፍል እናደርሳለን" +"\n"+ str(reference_number) +"\n"+ "በዚህ ቁጥር የአቤቱታ ሁኔታዎን መከታተል ይችላሉ.")
+                
                 else:
-                    dispatcher.utter_message("ቅሬታ ማስገባት አልተሳካም።")
+                    # Try to extract the error message from the response
+                    try:
+                        error_response = response_text.json()
+                        print(f"DEBUG: API Error Response: {error_response}")
+                        
+                        # Extract the message - it could be a string or list
+                        error_message = error_response.get('message', 'Unknown error')
+                        
+                        # If message is a list, join it
+                        if isinstance(error_message, list):
+                            error_message = ', '.join(error_message)
+                        
+                        # Also check other possible error fields
+                        if not error_message or error_message == 'Unknown error':
+                            error_message = error_response.get('error', str(response_text.status_code))
+                            
+                        print(f"DEBUG: Extracted error message: {error_message}")
+                        dispatcher.utter_message(f"ቅሬታ ማስገባት አልተሳካም። ስህተት: {error_message}")
+                        
+                    except json.JSONDecodeError:
+                        # If response is not JSON, show the raw text
+                        print(f"DEBUG: Non-JSON error response: {response_text.text}")
+                        dispatcher.utter_message(f"ቅሬታ ማስገባት አልተሳካም። ኮድ: {response_text.status_code}")
             else:
                 message = "አስተያየቶች አልተላኩም። እባክዎ ቆየት ብለው ይሞክሩ"
                 dispatcher.utter_message(text=message)
