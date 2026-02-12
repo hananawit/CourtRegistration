@@ -61,9 +61,9 @@ nlu:
   # nlu.yml
 - intent: select_court_main_service
   examples: |
-    - /cms_{"court_main_service_id": "21135bee-351d-43f5-aebe-0361838e336f"}
-    - cms_[1d61267c-5f03-4759-9487-bcc246720aa1](court_main_service_id)
-    - cms_[9fabe5f4-2788-41c3-9bc7-f28809821051](court_main_service_id)
+    - /select_court_main_service{"court_main_service_id": "21135bee-351d-43f5-aebe-0361838e336f"}
+    - /select_court_main_service{"court_main_service_id": "1d61267c-5f03-4759-9487-bcc246720aa1"}
+    - /select_court_main_service{"court_main_service_id": "9fabe5f4-2788-41c3-9bc7-f28809821051"}
 
 
 - intent: select_subunit_one
@@ -74,7 +74,7 @@ nlu:
 - intent: select_subunit_two
   examples: |
     - /select_subunit_two{"subunit_two_id": "21135bee-351d-43f5-aebe-03258638e336f"}
-    - select_subunit_two[9fabe5f4-2788-41c3-9bc7-f28809821051](select_subunit_two_id)
+    - select_subunit_two [9fabe5f4-2788-41c3-9bc7-f28809821051](subunit_two_id)
 
 - intent: select_subunit_three
   examples: |
@@ -118,13 +118,17 @@ nlu:
 
 - intent: select_complaint
   examples: |
+    - /select_complaint{"id": "17706180"}
+    - /select_complaint{"id": "17703883"}
+    - /select_complaint{"id": "17701186"}
     - /select_complaint{"reference_no": "REF-1770013181433-RZEPM8Y9E"}
-    - select complaint REF-1770013181433-RZEPM8Y9E
-
+    - select complaint
 - intent: view_complaint_detail
   examples: |
     - /view_complaint_detail{"reference_no": "REF-1770013181433-RZEPM8Y9E"}
     - view complaint detail REF-1770013181433-RZEPM8Y9E
+    - view_REF-1770013181433-RZEPM8Y9E
+    - view_ REF-1770013181433-RZEPM8Y9E
 
 - intent: appeal_complaint
   examples: |
@@ -133,3 +137,17 @@ nlu:
     - አቤቱታ አስገባ
     - appeal
     - አቤቱታ
+
+- intent: provide_appeal_reason
+  examples: |
+    - አዲስ ማስረጃ ስላለ እንደገና እንዲታይ እፈልጋለሁ
+    - የማጠናቀቂያ ውሳኔው ትክክል አይደለም
+    - ምክንያቱ ይህ ነው ተጨማሪ ማስረጃ አለ
+    - Appeal for reconsideration due to new evidence
+    - The decision should be reviewed because of missing information
+
+- intent: provide_reference_no
+  examples: |
+    - REF-1770013181433-RZEPM8Y9E
+    - REF-123456789-ABC
+    - reference REF-123

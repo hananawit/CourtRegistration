@@ -450,20 +450,17 @@ class ActionShowMyComplaints(Action):
                     "reference_no": complaint.get("reference_no", "N/A")
                 })
 
-            buttons = []
+            # Instead of buttons, use quick_replies
+            quick_replies = []
             for complaint in complaints:
                 ref_no = complaint.get("reference_no", "N/A")
-                # Use short prefix to avoid Telegram button data limit
-                payload = "sc_" + ref_no
-                buttons.append({"title": ref_no, "payload": payload})
-            if buttons:
-                dispatcher.utter_message(
-                    text="እባክዎ ቅሬታ ይምረጡ:",
-                    buttons=buttons,
-                    button_type="vertical"
-                )
-            else:
-                dispatcher.utter_message(text="ምንም ቅሬታ አልተገኘም።")
+                payload = f'/select_complaint{{"reference_no": "{ref_no}"}}'
+                quick_replies.append({"title": ref_no, "payload": payload})
+
+            dispatcher.utter_message(
+                text="እባክዎ ቅሬታ ይምረጡ:",
+                quick_replies=quick_replies
+            )
 
         except Exception as e:
             print(f"Error fetching complaints: {e}")
@@ -481,21 +478,76 @@ class ActionSelectComplaint(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
         user_text = tracker.latest_message.get("text", "")
+        intent_name = tracker.latest_message.get("intent", {}).get("name")
 
-        # Extract reference_no from entity or payload
+        # If a view/appeal payload was routed here by mistake, redirect safely.
+        if intent_name == "view_complaint_detail" or "/view_complaint_detail" in user_text or user_text.startswith("view_"):
+            reference_no = tracker.get_slot("selected_complaint_ref")
+            if not reference_no and "reference_no" in user_text:
+                match = re.search(r'reference_no\"\s*:\s*\"([^\"]+)\"', user_text)
+                if match:
+                    reference_no = match.group(1)
+            if not reference_no and user_text.startswith("view_"):
+                reference_no = user_text.replace("view_", "", 1).strip()
+
+            events: List[EventType] = []
+            if reference_no:
+                events.append(SlotSet("selected_complaint_ref", reference_no))
+            events.append(FollowupAction("action_view_complaint_detail"))
+            return events
+
+        if intent_name == "appeal_complaint" or "/appeal_complaint" in user_text or user_text.startswith("appeal_"):
+            reference_no = tracker.get_slot("selected_complaint_ref")
+            if not reference_no and "reference_no" in user_text:
+                match = re.search(r'reference_no\"\s*:\s*\"([^\"]+)\"', user_text)
+                if match:
+                    reference_no = match.group(1)
+            if not reference_no and user_text.startswith("appeal_"):
+                reference_no = user_text.replace("appeal_", "", 1).strip()
+
+            events = []
+            if reference_no:
+                events.append(SlotSet("selected_complaint_ref", reference_no))
+            events.append(FollowupAction("action_appeal_complaint"))
+            return events
+
+        # Extract reference_no from payload
         reference_no = None
 
-        # Method 1: Extract from "select_complaint" prefix (primary method for button clicks)
-        if "select_complaint" in user_text:
-            reference_no = user_text.replace("select_complaint", "", 1)
-            print(f"DEBUG: Extracted reference_no from select_complaint prefix: {reference_no}")
+        # Method 1: Entity parsed from intent payload (/select_complaint{"reference_no": "REF-..."})
+        for entity in tracker.latest_message.get("entities", []):
+            if entity.get("entity") == "reference_no":
+                reference_no = entity.get("value")
+                if reference_no:
+                    print(f"DEBUG: Extracted reference_no from entity: {reference_no}")
+                break
 
-        # Method 2: Extract from "sc_" prefix
-        if not reference_no and user_text.startswith("sc_"):
-            reference_no = user_text.replace("sc_", "", 1)
-            print(f"DEBUG: Extracted reference_no from sc_ prefix: {reference_no}")
+        # Method 2: Regex extract from JSON in text (handles optional space after intent)
+        if not reference_no and "reference_no" in user_text:
+            match = re.search(r'reference_no\"\s*:\s*\"([^\"]+)\"', user_text)
+            if match:
+                reference_no = match.group(1)
+                print(f"DEBUG: Extracted reference_no from JSON text: {reference_no}")
 
-        # Method 3: Direct payload (fallback)
+        # Method 3: Parse JSON part after /select_complaint (handles optional leading space)
+        if not reference_no and "/select_complaint" in user_text:
+            json_start = user_text.find("/select_complaint") + len("/select_complaint")
+            json_str = user_text[json_start:].strip()
+            if json_str.startswith("{") and json_str.endswith("}"):
+                try:
+                    data = json.loads(json_str)
+                    reference_no = data.get("reference_no")
+                    if reference_no:
+                        print(f"DEBUG: Extracted reference_no from select_complaint JSON: {reference_no}")
+                except json.JSONDecodeError:
+                    pass
+
+        # Method 4: Text payload like "/select_complaint REF-..." (space separated)
+        if not reference_no and user_text.startswith("/select_complaint "):
+            reference_no = user_text.replace("/select_complaint ", "", 1).strip()
+            print(f"DEBUG: Extracted reference_no from intent payload: {reference_no}")
+
+        # Method 5: Direct text fallback (button title may be the reference number)
         if not reference_no and user_text and user_text.strip():
             reference_no = user_text.strip()
             print(f"DEBUG: Extracted reference_no from direct payload: {reference_no}")
@@ -506,11 +558,11 @@ class ActionSelectComplaint(Action):
 
             dispatcher.utter_message(text=f"ቅሬታ {reference_no} ተመርጧል።")
 
-            # FIXED: Use simple payloads for Telegram
+            # Telegram callback_data is length-limited, so keep payloads short.
             buttons = [
-                {"title": "ዝርዝር አሳይ", "payload": "view_" + reference_no},
-                {"title": "አቤቱታ አስገባ", "payload": "appeal_" + reference_no},
-                {"title": "ተመለስ", "payload": "back_complaints"}
+                {"title": "ዝርዝር አሳይ", "payload": "/view_complaint_detail"},
+                {"title": "አቤቱታ አስገባ", "payload": "/appeal_complaint"},
+                {"title": "ተመለስ", "payload": "/show_my_complaints"}
             ]
 
             dispatcher.utter_message(
@@ -533,21 +585,36 @@ class ActionViewComplaintDetail(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        # Extract reference_no from payload
-        user_text = tracker.latest_message.get("text", "")
-        reference_no = None
+        # First try to get reference_no from the selected_complaint_ref slot
+        reference_no = tracker.get_slot("selected_complaint_ref")
 
-        # Method 1: Extract from "view_" prefix (Telegram-friendly)
-        if user_text.startswith("view_"):
-            reference_no = user_text.replace("view_", "", 1)
-            print(f"DEBUG: Extracted reference_no from view_ prefix: {reference_no}")
+        # If not available, extract from payload as fallback
+        if not reference_no:
+            user_text = tracker.latest_message.get("text", "")
+            intent_name = tracker.latest_message.get("intent", {}).get("name")
 
-        # Method 2: Extract from JSON payload (fallback)
-        if not reference_no and "reference_no" in user_text:
-            import re
-            match = re.search(r'reference_no\":\s*\"([^\"]+)\"', user_text)
-            if match:
-                reference_no = match.group(1)
+            # Method 1: If intent is view_complaint_detail, text is the reference_no
+            if intent_name == "view_complaint_detail":
+                reference_no = user_text.strip()
+                print(f"DEBUG: Extracted reference_no from view_complaint_detail intent: {reference_no}")
+
+            # Method 2: Extract from intent payload "/view_complaint_detail {reference_no}"
+            elif user_text.startswith("/view_complaint_detail "):
+                reference_no = user_text.replace("/view_complaint_detail ", "", 1).strip()
+                print(f"DEBUG: Extracted reference_no from intent payload: {reference_no}")
+
+            # Method 3: Extract from JSON payload (primary)
+            elif "reference_no" in user_text:
+                import re
+                match = re.search(r'reference_no\":\s*\"([^\"]+)\"', user_text)
+                if match:
+                    reference_no = match.group(1)
+                    print(f"DEBUG: Extracted reference_no from JSON: {reference_no}")
+
+            # Method 4: Extract from "view_" prefix (fallback)
+            elif user_text.startswith("view_"):
+                reference_no = user_text.replace("view_", "", 1)
+                print(f"DEBUG: Extracted reference_no from view_ prefix: {reference_no}")
 
         if not reference_no:
             dispatcher.utter_message(text="እባክዎ ትክክለኛ ቅሬታ ይምረጡ።")
@@ -586,14 +653,75 @@ class ActionViewComplaintDetail(Action):
 
             complaint_data = response.json()
 
-            # Display complaint details
-            current_status = complaint_data.get("current_status", {}).get("name", "ያልተለመደ")
-            dispatcher.utter_message(text=f"የቅሬታ ሁኔታ: {current_status}")
+            def first_value(*values):
+                for value in values:
+                    if value not in (None, "", []):
+                        return value
+                return "N/A"
+
+            def format_date(value: Optional[Text]) -> Text:
+                if not value:
+                    return "N/A"
+                if isinstance(value, str) and "T" in value:
+                    return value.split("T", 1)[0]
+                return str(value)
+
+            reference_display = first_value(
+                complaint_data.get("reference_no"),
+                complaint_data.get("referenceNo"),
+                reference_no
+            )
+            case_number = first_value(
+                complaint_data.get("case_no"),
+                complaint_data.get("case_number"),
+                complaint_data.get("caseNumber")
+            )
+            content = first_value(
+                complaint_data.get("content"),
+                complaint_data.get("complaint"),
+                complaint_data.get("description")
+            )
+            branch_name = first_value(
+                (complaint_data.get("branch") or {}).get("name"),
+                complaint_data.get("branch_name"),
+                complaint_data.get("branchName")
+            )
+            organization_name = first_value(
+                (complaint_data.get("organization") or {}).get("name"),
+                complaint_data.get("organization_name"),
+                complaint_data.get("organizationName"),
+                (complaint_data.get("department") or {}).get("name")
+            )
+            current_status = first_value(
+                (complaint_data.get("currentStatus") or {}).get("name"),
+                (complaint_data.get("status") or {}).get("name"),
+                complaint_data.get("status")
+            )
+            created_at = format_date(first_value(
+                complaint_data.get("createdAt"),
+                complaint_data.get("created_at")
+            ))
+            updated_at = format_date(first_value(
+                complaint_data.get("updatedAt"),
+                complaint_data.get("updated_at")
+            ))
+
+            details_text = (
+                f"🔢 ማጣቀሻ ቁጥር: {reference_display}\n"
+                f"📝 የጉዳይ ቁጥር: {case_number}\n"
+                f"📄 የቅሬታ ፍሬ: {content}\n"
+                f"🏛️ ቅርንጫፍ: {branch_name}\n"
+                f"🏢 ክፍል: {organization_name}\n"
+                f"📊 ሁኔታ: {current_status}\n"
+                f"📅 የተፈጠረበት ቀን: {created_at}\n"
+                f"🔄 የተሻሻለበት ቀን: {updated_at}"
+            )
+            dispatcher.utter_message(text=details_text)
 
             # Show buttons for appeal and back (Telegram-friendly payloads)
             buttons = [
-                {"title": "አቤቱታ አስገባ", "payload": "appeal_" + reference_no},
-                {"title": "ተመለስ", "payload": "back_complaints"}
+                {"title": "አቤቱታ አስገባ", "payload": "/appeal_complaint"},
+                {"title": "ተመለስ", "payload": "/show_my_complaints"}
             ]
             dispatcher.utter_message(
                 text="ምን ያስፈልግዎታል?",
@@ -616,12 +744,12 @@ class ActionAppealComplaint(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        # Extract reference_no from payload
+        # Extract reference_no from payload or slot
         user_text = tracker.latest_message.get("text", "")
-        reference_no = None
+        reference_no = tracker.get_slot("selected_complaint_ref")
 
-        # Method 1: Extract from "appeal_" prefix (Telegram-friendly)
-        if user_text.startswith("appeal_"):
+        # Method 1: Extract from "appeal_" prefix (legacy)
+        if not reference_no and user_text.startswith("appeal_"):
             reference_no = user_text.replace("appeal_", "", 1)
             print(f"DEBUG: Extracted reference_no from appeal_ prefix: {reference_no}")
 
@@ -632,24 +760,143 @@ class ActionAppealComplaint(Action):
             if match:
                 reference_no = match.group(1)
 
-        if not reference_no:
-            dispatcher.utter_message(text="እባክዎ ትክክለኛ ቅሬታ ይምረጡ።")
+        if reference_no:
+            # Find the complaint ID from stored user_complaints data
+            user_complaints = tracker.get_slot("user_complaints") or []
+            complaint_id = None
+            for complaint in user_complaints:
+                if isinstance(complaint, dict) and complaint.get("reference_no") == reference_no:
+                    complaint_id = complaint.get("id")
+                    break
+
+            if not complaint_id:
+                dispatcher.utter_message(text="ቅሬታ አልተገኘም።")
+                return []
+
+            access_token = access_token1
+
+            if not access_token:
+                dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ።")
+                return []
+
+            try:
+                api_url = f"https://court-api.zorcloud.net/complaints/{complaint_id}"
+                headers = {
+                    "Authorization": f"Bearer {access_token}",
+                    "Content-Type": "application/json"
+                }
+
+                response = requests.get(api_url, headers=headers, timeout=10)
+
+                if response.status_code != 200:
+                    dispatcher.utter_message(text="ቅሬታ ዝርዝሮችን ለማሳየት አልተሳካም።")
+                    return []
+
+                complaint_data = response.json()
+                status_code = (complaint_data.get("currentStatus") or {}).get("code", "") or ""
+                status_name = (complaint_data.get("currentStatus") or {}).get("name", "") or ""
+                normalized_status = status_code.lower() or status_name.lower()
+
+                # Only allow appeals for final decision statuses
+                allowed_statuses = {"rejected", "closed", "resolved"}
+                if normalized_status and normalized_status not in allowed_statuses:
+                    dispatcher.utter_message(
+                        text="አቤቱታ ለመስጠት ቅሬታው በመጨረሻ ውሳኔ ሁኔታ መሆን አለበት (ተቀባይነት አልተሰጠም/ተዘግቷል/ተጠናቅቋል)।"
+                    )
+                    return []
+
+                # Ask for appeal reason
+                dispatcher.utter_message(text="እባክዎ የአቤቱታዎን ምክንያት በአጭር ያስገቡ።")
+                return [
+                    SlotSet("appeal_complaint_id", complaint_id),
+                    SlotSet("appeal_reference_no", reference_no),
+                    SlotSet("is_appeal", True)
+                ]
+
+            except Exception as e:
+                print(f"Error fetching complaint details for appeal: {e}")
+                dispatcher.utter_message(text="ስህተት ተፈጥሯል።")
+                return []
+
+        else:
+            # No reference_no provided, show complaints for selection
+            dispatcher.utter_message(text="አቤቱታ ለመስጠት ቅሬታዎን ይምረጡ።")
+
+            # Set a slot to indicate this is an appeal
+            return [
+                SlotSet("is_appeal", True),
+                FollowupAction("action_show_my_complaints")
+            ]
+
+# =============== SUBMIT APPEAL ACTION ===============
+class ActionSubmitAppeal(Action):
+    def name(self) -> Text:
+        return "action_submit_appeal"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        appeal_reason = tracker.latest_message.get("text", "").strip()
+        complaint_id = tracker.get_slot("appeal_complaint_id")
+        reference_no = tracker.get_slot("appeal_reference_no")
+
+        if not complaint_id:
+            dispatcher.utter_message(text="እባክዎ መጀመሪያ ቅሬታዎን ይምረጡ።")
+            return [FollowupAction("action_show_my_complaints")]
+
+        if not appeal_reason:
+            dispatcher.utter_message(text="እባክዎ የአቤቱታዎን ምክንያት ያስገቡ።")
             return []
 
         access_token = access_token1
-
         if not access_token:
             dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ።")
             return []
 
-        # For appeal, redirect to show my complaints so user can select which complaint to appeal
-        dispatcher.utter_message(text="አቤቱታ ለመስጠት ቅሬታዎን ይምረጡ።")
+        try:
+            api_url = f"https://court-api.zorcloud.net/complaints/{complaint_id}/appeal"
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            }
+            payload = {"reason": appeal_reason}
 
-        # Set a slot to indicate this is an appeal
-        return [
-            SlotSet("is_appeal", True),
-            FollowupAction("action_show_my_complaints")
-        ]
+            response = requests.post(api_url, json=payload, headers=headers, timeout=10)
+
+            if response.status_code not in (200, 201):
+                try:
+                    error_data = response.json()
+                    message = error_data.get("message", "አቤቱታ ማስገባት አልተሳካም።")
+                except Exception:
+                    message = "አቤቱታ ማስገባት አልተሳካም።"
+                dispatcher.utter_message(text=message)
+                return []
+
+            appeal_data = response.json()
+            status = appeal_data.get("status", "PENDING")
+            created_at = appeal_data.get("created_at", "")
+            created_at = created_at.split("T", 1)[0] if "T" in created_at else created_at
+
+            dispatcher.utter_message(
+                text=(
+                    f"✅ አቤቱታዎ ተመዝግቧል።\n"
+                    f"🔢 ማጣቀሻ ቁጥር: {reference_no}\n"
+                    f"📊 ሁኔታ: {status}\n"
+                    f"📅 የተፈጠረበት ቀን: {created_at}"
+                )
+            )
+
+            return [
+                SlotSet("appeal_complaint_id", None),
+                SlotSet("appeal_reference_no", None),
+                SlotSet("is_appeal", False)
+            ]
+
+        except Exception as e:
+            print(f"Error submitting appeal: {e}")
+            dispatcher.utter_message(text="ስህተት ተፈጥሯል።")
+            return []
 # class ActionCheckAuth(Action):
 #     def name(self) -> Text:
 #         return "action_check_auth"
