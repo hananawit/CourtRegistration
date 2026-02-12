@@ -10,7 +10,16 @@ rules:
   steps:
   - intent: appeal_complaint
   - action: action_appeal_complaint
-  - action: action_save_attachment
+
+- rule: submit appeal reason
+  steps:
+  - intent: provide_appeal_reason
+  - action: action_submit_appeal
+
+- rule: provide reference number for appeal
+  steps:
+  - intent: provide_reference_no
+  - action: action_appeal_complaint
 
 - rule: Handle provide content
   steps:
@@ -139,6 +148,11 @@ rules:
   steps:
   - intent: select_complaint
   - action: action_select_complaint
+
+- rule: Handle view complaint detail
+  steps:
+  - intent: view_complaint_detail
+  - action: action_view_complaint_detail
     
 - rule: Continue to Commenter Type Form
   condition:
