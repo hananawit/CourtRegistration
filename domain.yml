@@ -25,6 +25,8 @@ intents:
   - show_my_complaints
   - select_complaint
   - appeal_complaint
+  - provide_appeal_reason
+  - provide_reference_no
 
 entities:
   - court_level_id
@@ -113,7 +115,16 @@ slots:
     type: text
     influence_conversation: false
   user_complaints:
+    type: list
+    influence_conversation: false
+  appeal_complaint_id:
     type: text
+    influence_conversation: false
+  appeal_reference_no:
+    type: text
+    influence_conversation: false
+  is_appeal:
+    type: bool
     influence_conversation: false
 responses:
   utter_welcome:
@@ -182,6 +193,7 @@ actions:
   - action_select_complaint
   - action_view_complaint_detail
   - action_appeal_complaint
+  - action_submit_appeal
 
 
 forms:
