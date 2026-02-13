@@ -4,6 +4,7 @@ intents:
   - greet
   - register
   - login
+  - logout
   - start_complaint
   - cancel
   - select_branch
@@ -46,6 +47,9 @@ slots:
     type: text
     influence_conversation: true
   access_token:
+    type: text
+    influence_conversation: false
+  session_expires_at:
     type: text
     influence_conversation: false
   user_id:
@@ -166,6 +170,9 @@ actions:
   - action_login_user
   - action_post_login_menu
   # - action_check_auth
+  - action_auth_required
+  - action_reset_case_number
+  - action_logout
   - action_reset_slots
   - check_ref_number_am
   - case_confirmation
@@ -226,4 +233,8 @@ forms:
     required_slots:
       upload_image:
       - type: from_text
+
+session_config:
+  session_expiration_time: 120
+  carry_over_slots_to_new_session: false
   

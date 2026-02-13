@@ -9,7 +9,7 @@ rules:
 - rule: appeal complaint
   steps:
   - intent: appeal_complaint
-  - action: action_appeal_complaint
+  - action: action_auth_required
 
 - rule: submit appeal reason
   steps:
@@ -19,7 +19,7 @@ rules:
 - rule: provide reference number for appeal
   steps:
   - intent: provide_reference_no
-  - action: action_appeal_complaint
+  - action: action_auth_required
 
 - rule: Handle provide content
   steps:
@@ -33,9 +33,7 @@ rules:
 - rule: Check auth for complaint
   steps:
   - intent: start_complaint
-  # - action: action_check_auth
-  - action: clarification_form_am
-  - active_loop: clarification_form_am
+  - action: action_auth_required
 
 - rule: Start registration form
   steps:
@@ -56,6 +54,11 @@ rules:
   - intent: login
   - action: login_form
   - active_loop: login_form
+
+- rule: Logout
+  steps:
+  - intent: logout
+  - action: action_logout
 
 - rule: Submit login form
   condition:
@@ -101,6 +104,7 @@ rules:
 - rule: Handle Case Confirmation Wrong
   steps:
   - intent: confirm_case_wrong
+  - action: action_reset_case_number
   - action: clarification_form_am
   - active_loop: clarification_form_am
 
@@ -142,7 +146,7 @@ rules:
 - rule: Handle show my complaints
   steps:
   - intent: show_my_complaints
-  - action: action_show_my_complaints
+  - action: action_auth_required
 
 - rule: Handle select complaint
   steps:
