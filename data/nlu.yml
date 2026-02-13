@@ -26,6 +26,14 @@ nlu:
     - ይግቡ
     - አስገባ
 
+- intent: logout
+  examples: |
+    - መውጣት
+    - መውጣት እፈልጋለሁ
+    - logout
+    - sign out
+    - ውጣ
+
 - intent: start_complaint
   examples: |
     - ቅሬታ ማስገባት እፈልጋለሁ
@@ -41,7 +49,13 @@ nlu:
     - cancel
     - አቁም
     - stop
-    - አይሆንም
+    - /restart 
+    - reset 
+    - እንደገና ጀምር
+    - ደጋሚ ጀምር
+    - እንደአዲስ ጀምር
+    - ከመጀመሪያ ጀምር
+
 
   
 - intent: select_court_level
@@ -64,6 +78,9 @@ nlu:
     - /select_court_main_service{"court_main_service_id": "21135bee-351d-43f5-aebe-0361838e336f"}
     - /select_court_main_service{"court_main_service_id": "1d61267c-5f03-4759-9487-bcc246720aa1"}
     - /select_court_main_service{"court_main_service_id": "9fabe5f4-2788-41c3-9bc7-f28809821051"}
+    - cms_21135bee-351d-43f5-aebe-0361838e336f
+    - cms_1d61267c-5f03-4759-9487-bcc246720aa1
+    - cms_9fabe5f4-2788-41c3-9bc7-f28809821051
 
 
 - intent: select_subunit_one
@@ -75,6 +92,7 @@ nlu:
   examples: |
     - /select_subunit_two{"subunit_two_id": "21135bee-351d-43f5-aebe-03258638e336f"}
     - select_subunit_two [9fabe5f4-2788-41c3-9bc7-f28809821051](subunit_two_id)
+    - /select_subunit_two{"subunit_two_id": "1d61267c-5f03-4759-9487-bcc246720aa1"}
 
 - intent: select_subunit_three
   examples: |
@@ -151,3 +169,7 @@ nlu:
     - REF-1770013181433-RZEPM8Y9E
     - REF-123456789-ABC
     - reference REF-123
+
+- regex: cms_payload
+  examples: |
+    - cms_[0-9a-f-]{36}

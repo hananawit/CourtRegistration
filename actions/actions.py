@@ -20,7 +20,170 @@ from rasa_sdk.events import SlotSet, EventType
 
 
 
-access_token1 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IiIsInN1YiI6IjUyYTYyYWIwLTExYmEtNDdlYS1hNDI5LWE3ZjQ5MGNjOTYxNyIsInJvbGUiOnsiaWQiOiI1ODkxYzYzOS1kZmI3LTRmMWItYTMwZi02NmEzNDI4ODRjM2MiLCJuYW1lIjoiY2xpZW50IiwiY29kZSI6IkJSQU5DSF9MRVZFTCJ9LCJjb3VydExldmVsSWQiOm51bGwsImJyYW5jaElkIjpudWxsLCJpYXQiOjE3NzAzMDA0NzAsImV4cCI6MTc3MDkwNTI3MH0.BAlRYxKHy47ITW_7Qxpx5oTMtf5lvIVZ4IR7wUecIY4"
+SESSION_TTL_MINUTES = 20
+
+
+def get_access_token(tracker: Tracker) -> Optional[Text]:
+    """Read access token from slot each time to avoid stale/global tokens."""
+    return tracker.get_slot("access_token")
+
+
+def _parse_dt(value: Optional[Text]) -> Optional[datetime.datetime]:
+    if not value:
+        return None
+    try:
+        return datetime.datetime.fromisoformat(value)
+    except Exception:
+        return None
+
+
+def _utc_now() -> datetime.datetime:
+    return datetime.datetime.utcnow()
+
+def require_auth(
+    dispatcher: CollectingDispatcher,
+    tracker: Tracker
+) -> (Optional[Text], List[EventType]):
+    token = get_access_token(tracker)
+    expires_at = _parse_dt(tracker.get_slot("session_expires_at"))
+
+    # Fallback when slot was cleared unexpectedly but token still exists in memory.
+    if not token and GlobalVariables.access_token:
+        if not expires_at or _utc_now() <= expires_at:
+            token = GlobalVariables.access_token
+
+    if not token:
+        auth_events = send_login_register_buttons(dispatcher, tracker)
+        return None, auth_events
+    
+    if expires_at and _utc_now() > expires_at:
+        GlobalVariables.access_token = None
+        auth_events = send_login_register_buttons(dispatcher, tracker)
+        return None, auth_events + [
+             SlotSet("access_token", None),
+            SlotSet("is_logged_in", False),
+            SlotSet("session_expires_at", None),
+        ]
+
+    return token, []
+
+
+class ActionAuthRequired(Action):
+    def name(self) -> Text:
+        return "action_auth_required"
+
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any]
+    ) -> List[EventType]:
+        intent_name = tracker.latest_message.get("intent", {}).get("name")
+
+        token, auth_events = require_auth(dispatcher, tracker)
+        if not token:
+            return auth_events
+
+        if intent_name == "start_complaint":
+            return [FollowupAction("clarification_form_am")]
+        if intent_name == "show_my_complaints":
+            return [FollowupAction("action_show_my_complaints")]
+        if intent_name in {"appeal_complaint", "provide_reference_no"}:
+            return [FollowupAction("action_appeal_complaint")]
+
+        return []
+
+
+class ActionResetCaseNumber(Action):
+    def name(self) -> Text:
+        return "action_reset_case_number"
+
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any]
+    ) -> List[EventType]:
+        return [SlotSet("case_number", None)]
+
+
+class ActionLogout(Action):
+    def name(self) -> Text:
+        return "action_logout"
+
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any]
+    ) -> List[EventType]:
+        dispatcher.utter_message(text="✅ በተሳካ ሁኔታ ወጥተዋል ።")
+        GlobalVariables.access_token = None
+        return [
+            SlotSet("case_number", None),
+            SlotSet("court_level_id", None),
+            SlotSet("branch_id", None),
+            SlotSet("court_main_service_id", None),
+            SlotSet("subunit_one_id", None),
+            SlotSet("subunit_two_id", None),
+            SlotSet("subunit_three_id", None),
+            SlotSet("available_court_main_services", None),
+            SlotSet("available_subunit_twos", None),
+            SlotSet("available_subunit_threes", None),
+            SlotSet("available_subunits", None),
+            SlotSet("content", None),
+            SlotSet("new_slot", None),
+            SlotSet("upload_image", None),
+            SlotSet("has_attachment", None),
+            SlotSet("selected_complaint_ref", None),
+            SlotSet("appeal_complaint_id", None),
+            SlotSet("appeal_reference_no", None),
+            SlotSet("is_appeal", False),
+            SlotSet("previous_intent", None),
+            SlotSet("requested_slot", None),
+        ]
+
+
+class ActionResetSlots(Action):
+    def name(self) -> Text:
+        return "action_reset_slots"
+
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any]
+    ) -> List[EventType]:
+        active_loop = (tracker.active_loop or {}).get("name")
+        events: List[EventType] = [SlotSet("requested_slot", None)]
+
+        # Reset only the slots related to the currently active form.
+        if active_loop == "registration_form":
+            events.extend([
+                SlotSet("phone", None),
+                SlotSet("password", None),
+            ])
+        elif active_loop == "login_form":
+            events.extend([
+                SlotSet("phone", None),
+                SlotSet("password", None),
+            ])
+        elif active_loop == "clarification_form_am":
+            events.extend([
+                SlotSet("case_number", None),
+            ])
+        elif active_loop == "content_compliant_form":
+            events.extend([
+                SlotSet("content", None),
+                SlotSet("new_slot", None),
+            ])
+        elif active_loop == "form_upload_image":
+            events.extend([
+                SlotSet("upload_image", None),
+                SlotSet("has_attachment", None),
+            ])
+
+        return events
 
 # referenceNumber=''
 # isCaseNumberAvailable= ''
@@ -71,8 +234,20 @@ class ActionResetAllSlots(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-   
-        return [AllSlotsReset()]
+        # Preserve auth/session slots when resetting all other slots.
+        access_token = tracker.get_slot("access_token")
+        user_id = tracker.get_slot("user_id")
+        is_logged_in = tracker.get_slot("is_logged_in")
+        session_expires_at = tracker.get_slot("session_expires_at")
+        GlobalVariables.access_token = access_token
+
+        return [
+            AllSlotsReset(),
+            SlotSet("access_token", access_token),
+            SlotSet("user_id", user_id),
+            SlotSet("is_logged_in", is_logged_in),
+            SlotSet("session_expires_at", session_expires_at),
+        ]
 # =============== REGISTRATION FORM ===============
 class RegistrationForm(FormAction):
     def name(self) -> Text:
@@ -212,11 +387,11 @@ class ActionRegisterUser(Action):
                     dispatcher.utter_message(text=f"❌ {message}")
                     
             else:
-                dispatcher.utter_message(text="❌ ምዝገባ አልተሳካም።")
+                dispatcher.utter_message(text="❌ ምዝገባ አልተሳካም። እባክዎ እንደገና ይሞክሩ።")
                 
         except Exception as e:
             print(f"Error: {e}")
-            dispatcher.utter_message(text="❌ አንድ ስህተት ተከስቷል።")
+            dispatcher.utter_message(text="❌  ምዝገባ አልተሳካም። እባክዎ እንደገና ይሞክሩ።")
         
         return [SlotSet("phone", None), SlotSet("password", None)]
 
@@ -230,11 +405,11 @@ class ActionPostLoginMenu(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
         buttons = [
-            {"title": "ቅሬታ ማስገባት", "payload": "/start_complaint"},
-            {"title": "ቅሬታዎች እኔ", "payload": "/show_my_complaints"},
-            {"title": "አቤቱታ አስገባ", "payload": "/appeal_complaint"}
+            {"title": "ቅሬታ ማቅረብ", "payload": "/start_complaint"},
+            {"title": "ቅሬታዎቼን ማየት", "payload": "/show_my_complaints"},
+            {"title": "የግባኝ ማስገባት", "payload": "/appeal_complaint"}
         ]
-        dispatcher.utter_message(text="ምን ያስፈልግዎታል?", buttons=buttons, button_type="vertical")
+        dispatcher.utter_message(text="ምን ማድረግ የፈለጋሉ ?", buttons=buttons, button_type="vertical")
         return []
 
 # class ActionCheckAuth(Action):
@@ -366,6 +541,7 @@ class ActionLoginUser(Action):
 
                 if access_token:
                     print(f"DEBUG: Login successful, access_token: {access_token[:20]}...")
+                    GlobalVariables.access_token = access_token
                     dispatcher.utter_message(text="✅ በተሳካ ሁኔታ ገብተዋል!")
 
                     # Route based on previous intent
@@ -380,10 +556,13 @@ class ActionLoginUser(Action):
                         followup_action = "action_appeal_complaint"
                     # For "login" intent or default, show menu
 
+                    expires_at = (_utc_now() + datetime.timedelta(minutes=SESSION_TTL_MINUTES)).isoformat()
                     return [
                         SlotSet("access_token", access_token),
                         SlotSet("user_id", user_id),
                         SlotSet("is_logged_in", True),
+                        SlotSet("session_expires_at", expires_at),
+                        SlotSet("previous_intent", None),
                         SlotSet("phone", None),
                         SlotSet("password", None),
                         FollowupAction(followup_action)
@@ -415,11 +594,9 @@ class ActionShowMyComplaints(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        access_token = access_token1
-
+        access_token, auth_events = require_auth(dispatcher, tracker)
         if not access_token:
-            send_login_register_buttons(dispatcher, tracker)
-            return []
+            return auth_events
 
         try:
             api_url = "https://court-api.zorcloud.net/complaints/my-complaints"
@@ -464,9 +641,11 @@ class ActionShowMyComplaints(Action):
 
         except Exception as e:
             print(f"Error fetching complaints: {e}")
-            dispatcher.utter_message(text="ስህተት ተፈጥሯል።")
+            dispatcher.utter_message(text="ለጊዜው አገልግሎቱን መስጠት አልተቻለም")
 
-        return [SlotSet("user_complaints", user_complaints)]
+        return [
+            SlotSet("user_complaints", user_complaints),
+        ]
 
 # =============== SELECT COMPLAINT ACTION ===============
 class ActionSelectComplaint(Action):
@@ -547,6 +726,15 @@ class ActionSelectComplaint(Action):
             reference_no = user_text.replace("/select_complaint ", "", 1).strip()
             print(f"DEBUG: Extracted reference_no from intent payload: {reference_no}")
 
+        # Method 5: Prefer full REF token from text (avoids truncated entity values)
+        if user_text and "REF-" in user_text:
+            ref_match = re.findall(r"REF-[A-Z0-9-]+", user_text)
+            if ref_match:
+                longest_ref = max(ref_match, key=len)
+                if not reference_no or len(longest_ref) > len(reference_no):
+                    reference_no = longest_ref
+                    print(f"DEBUG: Extracted full reference_no from text: {reference_no}")
+
         # Method 5: Direct text fallback (button title may be the reference number)
         if not reference_no and user_text and user_text.strip():
             reference_no = user_text.strip()
@@ -561,19 +749,19 @@ class ActionSelectComplaint(Action):
             # Telegram callback_data is length-limited, so keep payloads short.
             buttons = [
                 {"title": "ዝርዝር አሳይ", "payload": "/view_complaint_detail"},
-                {"title": "አቤቱታ አስገባ", "payload": "/appeal_complaint"},
+                {"title": "ይገባኝ አስገባ", "payload": "/appeal_complaint"},
                 {"title": "ተመለስ", "payload": "/show_my_complaints"}
             ]
 
             dispatcher.utter_message(
-                text="ምን ያስፈልግዎታል?",
+                text="ምን ማድረግ የፈለጋሉ ?",
                 buttons=buttons,
                 button_type="vertical"
             )
 
             return [SlotSet("selected_complaint_ref", reference_no)]
 
-        dispatcher.utter_message(text="እባክዎ ትክክለኛ ቅሬታ ይምረጡ።")
+        dispatcher.utter_message(text="እባክዎ ትክክለኛ ቅሬታ ቁጥር ይምረጡ።")
         return []
 
 # =============== VIEW COMPLAINT DETAIL ACTION ===============
@@ -585,7 +773,8 @@ class ActionViewComplaintDetail(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        # First try to get reference_no from the selected_complaint_ref slot
+        # First try to get reference_no from the selected complaint slot.
+        intent_name = tracker.latest_message.get("intent", {}).get("name")
         reference_no = tracker.get_slot("selected_complaint_ref")
 
         # If not available, extract from payload as fallback
@@ -605,7 +794,6 @@ class ActionViewComplaintDetail(Action):
 
             # Method 3: Extract from JSON payload (primary)
             elif "reference_no" in user_text:
-                import re
                 match = re.search(r'reference_no\":\s*\"([^\"]+)\"', user_text)
                 if match:
                     reference_no = match.group(1)
@@ -617,8 +805,12 @@ class ActionViewComplaintDetail(Action):
                 print(f"DEBUG: Extracted reference_no from view_ prefix: {reference_no}")
 
         if not reference_no:
-            dispatcher.utter_message(text="እባክዎ ትክክለኛ ቅሬታ ይምረጡ።")
+            dispatcher.utter_message(text="እባክዎ ትክክለኛ የቅሬታ ቁጥር ይምረጡ።")
             return []
+
+        access_token, auth_events = require_auth(dispatcher, tracker)
+        if not access_token:
+            return auth_events
 
         # Find the complaint ID from stored user_complaints data
         user_complaints = tracker.get_slot("user_complaints") or []
@@ -628,14 +820,52 @@ class ActionViewComplaintDetail(Action):
                 complaint_id = complaint.get("id")
                 break
 
+        # Fallback: try to recover full reference_no from latest message if slot is truncated
         if not complaint_id:
-            dispatcher.utter_message(text="ቅሬታ ዝርዝሮችን ለማሳየት አልተሳካም።")
-            return []
+            user_text = tracker.latest_message.get("text", "")
+            ref_match = re.findall(r"REF-[A-Z0-9-]+", user_text or "")
+            if ref_match:
+                candidate_ref = max(ref_match, key=len)
+                for complaint in user_complaints:
+                    if isinstance(complaint, dict) and complaint.get("reference_no") == candidate_ref:
+                        reference_no = candidate_ref
+                        complaint_id = complaint.get("id")
+                        break
 
-        access_token = access_token1
+        # Fallback: if still not found, refetch complaints list and try again
+        if not complaint_id:
+            try:
+                api_url = "https://court-api.zorcloud.net/complaints/my-complaints"
+                headers = {
+                    "Authorization": f"Bearer {access_token}",
+                    "Content-Type": "application/json"
+                }
+                response = requests.get(api_url, headers=headers, timeout=10)
+                if response.status_code == 200:
+                    complaints_data = response.json()
+                    complaints = complaints_data.get("data", complaints_data) or []
+                    refreshed = []
+                    for complaint in complaints:
+                        refreshed.append({
+                            "id": complaint.get("id"),
+                            "reference_no": complaint.get("reference_no", "N/A")
+                        })
+                    user_complaints = refreshed
+                    for complaint in user_complaints:
+                        if isinstance(complaint, dict) and complaint.get("reference_no") == reference_no:
+                            complaint_id = complaint.get("id")
+                            break
+                    if complaint_id:
+                        # keep slot in sync for later actions
+                        SlotSet("user_complaints", user_complaints)
+                else:
+                    print(f"DEBUG: Failed to refresh complaints. Status: {response.status_code}")
+            except Exception as e:
+                print(f"DEBUG: Error refreshing complaints list: {e}")
 
-        if not access_token:
-            send_login_register_buttons(dispatcher, tracker)
+        if not complaint_id:
+            dispatcher.utter_message(text="የቅሬታ ዝርዝሮችን ለማሳየት አልተሳካም።")
+            print(f"Error: Complaint ID not found for reference_no: {reference_no}")
             return []
 
         try:
@@ -648,7 +878,8 @@ class ActionViewComplaintDetail(Action):
             response = requests.get(api_url, headers=headers, timeout=10)
 
             if response.status_code != 200:
-                dispatcher.utter_message(text="ቅሬታ ዝርዝሮችን ለማሳየት አልተሳካም።")
+                dispatcher.utter_message(text="የቅሬታ ዝርዝሮችን ለማሳየት አልተሳካም።")
+                print(f"Error fetching complaint details: Status {response.status_code}, Response: {response.text}")
                 return []
 
             complaint_data = response.json()
@@ -720,18 +951,18 @@ class ActionViewComplaintDetail(Action):
 
             # Show buttons for appeal and back (Telegram-friendly payloads)
             buttons = [
-                {"title": "አቤቱታ አስገባ", "payload": "/appeal_complaint"},
+                {"title": "ይገባኝ አስገባ", "payload": "/appeal_complaint"},
                 {"title": "ተመለስ", "payload": "/show_my_complaints"}
             ]
             dispatcher.utter_message(
-                text="ምን ያስፈልግዎታል?",
+                text="ምን ማድረግ የፈለጋሉ ?",
                 buttons=buttons,
                 button_type="vertical"
             )
 
         except Exception as e:
             print(f"Error fetching complaint details: {e}")
-            dispatcher.utter_message(text="ስህተት ተፈጥሯል።")
+            dispatcher.utter_message(text="ለጊዜው አገልግሎቱን መስጠት አልተቻለም")
 
         return []
 
@@ -746,7 +977,20 @@ class ActionAppealComplaint(Action):
 
         # Extract reference_no from payload or slot
         user_text = tracker.latest_message.get("text", "")
-        reference_no = tracker.get_slot("selected_complaint_ref")
+        intent_name = tracker.latest_message.get("intent", {}).get("name")
+
+        has_ref_in_text = bool(re.search(r"REF-[A-Z0-9-]+", user_text or ""))
+        has_ref_entity = any(
+            entity.get("entity") == "reference_no" for entity in tracker.latest_message.get("entities", [])
+        )
+
+        # If user typed "appeal" without a specific reference, do NOT reuse stale selection.
+        # But if this came from a button payload (e.g. "/appeal_complaint"), keep the selection.
+        is_button_payload = user_text.strip().startswith("/")
+        if intent_name == "appeal_complaint" and not has_ref_in_text and not has_ref_entity and not is_button_payload:
+            reference_no = None
+        else:
+            reference_no = tracker.get_slot("selected_complaint_ref")
 
         # Method 1: Extract from "appeal_" prefix (legacy)
         if not reference_no and user_text.startswith("appeal_"):
@@ -755,7 +999,6 @@ class ActionAppealComplaint(Action):
 
         # Method 2: Extract from JSON payload (fallback)
         if not reference_no and "reference_no" in user_text:
-            import re
             match = re.search(r'reference_no\":\s*\"([^\"]+)\"', user_text)
             if match:
                 reference_no = match.group(1)
@@ -769,15 +1012,46 @@ class ActionAppealComplaint(Action):
                     complaint_id = complaint.get("id")
                     break
 
+            # Fallback: refetch complaints list if not found
+            if not complaint_id:
+                access_token, auth_events = require_auth(dispatcher, tracker)
+                if not access_token:
+                    return auth_events
+                try:
+                    api_url = "https://court-api.zorcloud.net/complaints/my-complaints"
+                    headers = {
+                        "Authorization": f"Bearer {access_token}",
+                        "Content-Type": "application/json"
+                    }
+                    response = requests.get(api_url, headers=headers, timeout=10)
+                    if response.status_code == 200:
+                        complaints_data = response.json()
+                        complaints = complaints_data.get("data", complaints_data) or []
+                        refreshed = []
+                        for complaint in complaints:
+                            refreshed.append({
+                                "id": complaint.get("id"),
+                                "reference_no": complaint.get("reference_no", "N/A")
+                            })
+                        user_complaints = refreshed
+                        for complaint in user_complaints:
+                            if isinstance(complaint, dict) and complaint.get("reference_no") == reference_no:
+                                complaint_id = complaint.get("id")
+                                break
+                        if complaint_id:
+                            SlotSet("user_complaints", user_complaints)
+                    else:
+                        print(f"DEBUG: Failed to refresh complaints. Status: {response.status_code}")
+                except Exception as e:
+                    print(f"DEBUG: Error refreshing complaints list: {e}")
+
             if not complaint_id:
                 dispatcher.utter_message(text="ቅሬታ አልተገኘም።")
                 return []
 
-            access_token = access_token1
-
+            access_token, auth_events = require_auth(dispatcher, tracker)
             if not access_token:
-                dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ።")
-                return []
+                return auth_events
 
             try:
                 api_url = f"https://court-api.zorcloud.net/complaints/{complaint_id}"
@@ -801,12 +1075,17 @@ class ActionAppealComplaint(Action):
                 allowed_statuses = {"rejected", "closed", "resolved"}
                 if normalized_status and normalized_status not in allowed_statuses:
                     dispatcher.utter_message(
-                        text="አቤቱታ ለመስጠት ቅሬታው በመጨረሻ ውሳኔ ሁኔታ መሆን አለበት (ተቀባይነት አልተሰጠም/ተዘግቷል/ተጠናቅቋል)।"
+                        text="ይገባኝ ለማስባት  ቀድመው ያስገቡት ቅሬታ ሁኔታ መልሰ መሰጠት አለበት "
                     )
-                    return []
+                    return [
+                        SlotSet("selected_complaint_ref", None),
+                        SlotSet("appeal_complaint_id", None),
+                        SlotSet("appeal_reference_no", None),
+                        SlotSet("previous_intent", None),
+                    ]
 
                 # Ask for appeal reason
-                dispatcher.utter_message(text="እባክዎ የአቤቱታዎን ምክንያት በአጭር ያስገቡ።")
+                dispatcher.utter_message(text="እባክዎ የይገባኝዎን ምክንያት በአጭር ያስገቡ።")
                 return [
                     SlotSet("appeal_complaint_id", complaint_id),
                     SlotSet("appeal_reference_no", reference_no),
@@ -815,15 +1094,19 @@ class ActionAppealComplaint(Action):
 
             except Exception as e:
                 print(f"Error fetching complaint details for appeal: {e}")
-                dispatcher.utter_message(text="ስህተት ተፈጥሯል።")
+                dispatcher.utter_message(text="ለጊዜው አገልግሎቱን መስጠት አልተቻለም")
                 return []
 
         else:
             # No reference_no provided, show complaints for selection
-            dispatcher.utter_message(text="አቤቱታ ለመስጠት ቅሬታዎን ይምረጡ።")
+            dispatcher.utter_message(text="ይገባኝ ለማስገባት ቅሬታዎን ይምረጡ።")
 
             # Set a slot to indicate this is an appeal
             return [
+                SlotSet("selected_complaint_ref", None),
+                SlotSet("appeal_complaint_id", None),
+                SlotSet("appeal_reference_no", None),
+                SlotSet("previous_intent", None),
                 SlotSet("is_appeal", True),
                 FollowupAction("action_show_my_complaints")
             ]
@@ -846,13 +1129,12 @@ class ActionSubmitAppeal(Action):
             return [FollowupAction("action_show_my_complaints")]
 
         if not appeal_reason:
-            dispatcher.utter_message(text="እባክዎ የአቤቱታዎን ምክንያት ያስገቡ።")
+            dispatcher.utter_message(text="እባክዎ የይገባኝዎን ምክንያት ያስገቡ።")
             return []
 
-        access_token = access_token1
+        access_token, auth_events = require_auth(dispatcher, tracker)
         if not access_token:
-            dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ።")
-            return []
+            return auth_events
 
         try:
             api_url = f"https://court-api.zorcloud.net/complaints/{complaint_id}/appeal"
@@ -862,14 +1144,14 @@ class ActionSubmitAppeal(Action):
             }
             payload = {"reason": appeal_reason}
 
-            response = requests.post(api_url, json=payload, headers=headers, timeout=10)
+            response = requests.post(api_url, json=payload, headers=headers, timeout=20)
 
             if response.status_code not in (200, 201):
                 try:
                     error_data = response.json()
-                    message = error_data.get("message", "አቤቱታ ማስገባት አልተሳካም።")
+                    message = error_data.get("message", "ይገባኝ ማስገባት አልተሳካም።")
                 except Exception:
-                    message = "አቤቱታ ማስገባት አልተሳካም።"
+                    message = "ይገባኝ ማስገባት አልተሳካም።"
                 dispatcher.utter_message(text=message)
                 return []
 
@@ -880,7 +1162,7 @@ class ActionSubmitAppeal(Action):
 
             dispatcher.utter_message(
                 text=(
-                    f"✅ አቤቱታዎ ተመዝግቧል።\n"
+                    f"✅ ይገባኝዎ ተመዝግቧል።\n"
                     f"🔢 ማጣቀሻ ቁጥር: {reference_no}\n"
                     f"📊 ሁኔታ: {status}\n"
                     f"📅 የተፈጠረበት ቀን: {created_at}"
@@ -888,14 +1170,16 @@ class ActionSubmitAppeal(Action):
             )
 
             return [
+                SlotSet("selected_complaint_ref", None),
                 SlotSet("appeal_complaint_id", None),
                 SlotSet("appeal_reference_no", None),
-                SlotSet("is_appeal", False)
+                SlotSet("is_appeal", False),
+                SlotSet("previous_intent", None),
             ]
 
         except Exception as e:
             print(f"Error submitting appeal: {e}")
-            dispatcher.utter_message(text="ስህተት ተፈጥሯል።")
+            dispatcher.utter_message(text="ለጊዜው አገልግሎቱን መስጠት አልተቻለም")
             return []
 # class ActionCheckAuth(Action):
 #     def name(self) -> Text:
@@ -946,8 +1230,8 @@ class Actioncheck_ref_numberAm(Action):
                 GlobalVariables.isCaseNumberAvailable = response_json.get("CaseNumber")
                 
                 if GlobalVariables.isCaseNumberAvailable is None:
-                    message = "በዚህ ማጣቀሻ ቁጥር የተመዘገበ ፋይል የለም ሰለዚህ"
-                    dispatcher.utter_message(text=message)
+                    # message = "በዚህ ማጣቀሻ ቁጥር የተመዘገበ ፋይል የለም ሰለዚህ"
+                    # dispatcher.utter_message(text=message)
                     return [SlotSet("case_number", None), FollowupAction("clarification_form_am")]
                 
                 # Show case info
@@ -957,7 +1241,7 @@ class Actioncheck_ref_numberAm(Action):
                 # Ask for confirmation
                 buttons = [
                     {"title": "✓ ትክክል ነው - ቀጥል", "payload": "/confirm_case_correct"},
-                    {"title": "✗ ትክክል አይደለም - እንደገና አስገባ", "payload": "/confirm_case_wrong"}
+                    {"title": "✗ ትክክል አይደለም-እንደገና አስገባ", "payload": "/confirm_case_wrong"}
                 ]
                 dispatcher.utter_message(
                 text="ይህ የእርሶ ጉዳይ ነው?",
@@ -1024,7 +1308,7 @@ class CaseDisplayAm(Action):
                 buttons=buttons,
                 button_type="vertical")
             else:
-                message = "ለጊዜው, ይህን ሂደት ማከናወን አልችልም"
+                message = "ለጊዜው, ይህን ሂደት ማከናወን አልተቻለም"
                 dispatcher.utter_message(text=message)
                 return [SlotSet("case_number", None)]
                 
@@ -1073,8 +1357,6 @@ class clarificationformAm(FormAction):
 #         try:
 #             # Get access token from slot
 #             access_token = tracker.get_slot("access_token")
-#             access_token=access_token1
-#             print(f"Access Token court_leveles: {access_token1}")
             
 #             if not access_token:
 #                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
@@ -1272,14 +1554,9 @@ class ActionFetchcourt_leveles(Action):
         """Fetch court_leveles from API using access token and display as buttons"""
         
         try:
-            # Get access token from slot
-            access_token = tracker.get_slot("access_token")
-            access_token=access_token1
-            print(f"Access Token court_leveles: {access_token1}")
-            
+            access_token, auth_events = require_auth(dispatcher, tracker)
             if not access_token:
-                dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
-                return []
+                return auth_events
             
             # API endpoint
             api_url = "https://court-api.zorcloud.net/court-levels" 
@@ -1362,13 +1639,11 @@ class ActionFetchBranchesBycourt_level_id(Action):
             # Get access token and court level ID
             # access_token = tracker.get_slot("access_token")
             court_level_id = tracker.get_slot("court_level_id")
-            access_token= access_token1
             print(f"DEBUG: Court Level ID: {court_level_id}")
-            print(f"DEBUG: Access Token: {access_token[:50] if access_token else 'None'}...")
+            access_token, auth_events = require_auth(dispatcher, tracker)
             
             if not access_token:
-                dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
-                return []
+                return auth_events
             
             if not court_level_id:
                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ የፍ/ቤት ደረጃ ይምረጡ")
@@ -1604,7 +1879,6 @@ class ActionSaveBranch(Action):
 #             branch_id = tracker.get_slot("branch_id")
 
 #             print(f"DEBUG: Fetching court main services for branch: {branch_id}")
-#             print(f"DEBUG: Access Token: {access_token[:50]}...")
 
 #             if not access_token:
 #                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
@@ -1741,15 +2015,13 @@ class ActionFetchCourtMainServices(Action):
         """Fetch top-level organizations (where parentId is null) as Court Main Services"""
 
         try:
-            access_token = access_token1
+            access_token, auth_events = require_auth(dispatcher, tracker)
             branch_id = tracker.get_slot("branch_id")
 
             print(f"DEBUG: Fetching court main services by branch: {branch_id}")
-            print(f"DEBUG: Access Token: {access_token[:50]}...")
 
             if not access_token:
-                dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
-                return []
+                return auth_events
 
             if not branch_id:
                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ ቅርንጫፍ ይምረጡ")
@@ -1968,15 +2240,14 @@ class ActionFetchSubUnitOne(Action):
 
         try:
             # Get access token, branch ID and parent service ID
-            access_token = access_token1
+            access_token, auth_events = require_auth(dispatcher, tracker)
             branch_id = tracker.get_slot("branch_id")
             parent_service_id = tracker.get_slot("court_main_service_id")
 
             print(f"DEBUG: Fetching subunits for parent ID: {parent_service_id}, branch: {branch_id}")
 
             if not access_token:
-                dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
-                return []
+                return auth_events
 
             if not branch_id:
                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ ቅርንጫፍ ይምረጡ")
@@ -2049,7 +2320,7 @@ class ActionFetchSubUnitOne(Action):
 
             if not child_organizations:
                 # No subunits available, go to content
-                dispatcher.utter_message(text="ለዚህ አገልግሎት ንዑስ ክፍሎች የሉም፣ ወደ ቀጣይ ደረጃ እንሸጋገራለን")
+                # dispatcher.utter_message(text="ለዚህ አገልግሎት ንዑስ ክፍሎች የሉም፣ ወደ ቀጣይ ደረጃ እንሸጋገራለን")
                 return [FollowupAction("content_compliant_form")]
 
             # Create buttons for each child organization
@@ -2235,7 +2506,7 @@ class ActionFetchSubUnitTwo(Action):
 
         try:
             # Get access token, branch ID and parent subunit one ID
-            access_token = access_token1
+            access_token, auth_events = require_auth(dispatcher, tracker)
 
             branch_id = tracker.get_slot("branch_id")
             parent_subunit_one_id = tracker.get_slot("subunit_one_id")
@@ -2243,8 +2514,7 @@ class ActionFetchSubUnitTwo(Action):
             print(f"DEBUG: Fetching subunit two for parent ID: {parent_subunit_one_id}, branch: {branch_id}")
 
             if not access_token:
-                dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
-                return []
+                return auth_events
 
             if not branch_id:
                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ ቅርንጫፍ ይምረጡ")
@@ -2297,7 +2567,7 @@ class ActionFetchSubUnitTwo(Action):
 
             if not subunit_two_organizations:
                 # No subunit two available, go to content
-                dispatcher.utter_message(text="ለዚህ ንዑስ ክፍል ንዑስ ክፍሎች ሁለት የሉም፣ ወደ ቀጣይ ደረጃ እንሸጋገራለን")
+                # dispatcher.utter_message(text="ለዚህ ንዑስ ክፍል ንዑስ ክፍሎች ሁለት የሉም፣ ወደ ቀጣይ ደረጃ እንሸጋገራለን")
                 return [FollowupAction("content_compliant_form")]
 
             # Create buttons for each subunit two organization
@@ -2422,15 +2692,14 @@ class ActionFetchSubUnitThree(Action):
 
         try:
             # Get access token, branch ID and parent subunit two ID
-            access_token = access_token1
+            access_token, auth_events = require_auth(dispatcher, tracker)
             branch_id = tracker.get_slot("branch_id")
             parent_subunit_two_id = tracker.get_slot("subunit_two_id")
 
             print(f"DEBUG: Fetching subunit three for parent ID: {parent_subunit_two_id}, branch: {branch_id}")
 
             if not access_token:
-                dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
-                return []
+                return auth_events
 
             if not branch_id:
                 dispatcher.utter_message(text="እባክዎ በመጀመሪያ ቅርንጫፍ ይምረጡ")
@@ -2503,7 +2772,7 @@ class ActionFetchSubUnitThree(Action):
 
             if not subunit_three_organizations:
                 # No subunit three available, go to content
-                dispatcher.utter_message(text="ለዚህ ንዑስ ክፍል ንዑስ ክፍሎች ሶስት የሉም፣ ወደ ቀጣይ ደረጃ እንሸጋገራለን")
+                # dispatcher.utter_message(text="ለዚህ ንዑስ ክፍል ንዑስ ክፍሎች ሶስት የሉም፣ ወደ ቀጣይ ደረጃ እንሸጋገራለን")
                 return [FollowupAction("content_compliant_form")]
 
             # Create buttons for each subunit three organization
@@ -2655,7 +2924,7 @@ class ActionAskContent(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        dispatcher.utter_message(text="እባክዎ ቅሬታዎን በአጭር ያስተያዩ")
+        dispatcher.utter_message(text="እባክዎ ቅሬታዎን አብራርተው ይግለጹ ")
         return []
 
 
@@ -2898,14 +3167,9 @@ class ActionSubmitcompliant(Action):
 
         print("data is", data)
         try:
-            # Get access token from slot
-            # access_token = tracker.get_slot("access_token")
-            access_token=access_token1
-            print(f"Access Token court_leveles: {access_token}")
-            
+            access_token, auth_events = require_auth(dispatcher, tracker)
             if not access_token:
-                dispatcher.utter_message(text="እባክዎ በመጀመሪያ ይግቡ")
-                return []
+                return auth_events
             
             # API endpoint
             api_url = "https://court-api.zorcloud.net/court-levels" 
@@ -2922,14 +3186,13 @@ class ActionSubmitcompliant(Action):
             if connected_to_internet(url=url):
                 print("checking")
                 response_text = requests.post(url, json=data, headers=headers, timeout=50)
-                # access_token=access_token1
                 if response_text.status_code == 201:
                     response_json = json.loads(response_text.text)
                     dispatcher.utter_message("ከእኛ ጋር ስላደረጉት ቆይታ እናመሰግናለን.")
                     reference_number = response_json.get('reference_no', 'N/A')
                     compalint_id = response_json.get('id', 'N/A')
                     print(reference_number)
-                    dispatcher.utter_message(" ቅሬታህን ተቀብለናል ,ለሚመለከተው ክፍል እናደርሳለን" +"\n"+ str(reference_number) +"\n"+ "በዚህ ቁጥር የአቤቱታ ሁኔታዎን መከታተል ይችላሉ.")
+                    dispatcher.utter_message(" ቅሬታህን ተቀብለናል ,ለሚመለከተው ክፍል እናደርሳለን" +"\n"+ str(reference_number) +"\n"+ "በዚህ ቁጥር የቅረታ ሁኔታዎን መከታተል ይችላሉ.")
                 
                 else:
                     # Try to extract the error message from the response
@@ -2949,18 +3212,18 @@ class ActionSubmitcompliant(Action):
                             error_message = error_response.get('error', str(response_text.status_code))
                             
                         print(f"DEBUG: Extracted error message: {error_message}")
-                        dispatcher.utter_message(f"ቅሬታ ማስገባት አልተሳካም። ስህተት: {error_message}")
+                        dispatcher.utter_message(f"ቅሬታ ማስገባት አልተሳካም። ")
                         
                     except json.JSONDecodeError:
                         # If response is not JSON, show the raw text
                         print(f"DEBUG: Non-JSON error response: {response_text.text}")
-                        dispatcher.utter_message(f"ቅሬታ ማስገባት አልተሳካም። ኮድ: {response_text.status_code}")
+                        dispatcher.utter_message(f"ቅሬታ ማስገባት አልተሳካም።")
             else:
                 message = "አስተያየቶች አልተላኩም። እባክዎ ቆየት ብለው ይሞክሩ"
                 dispatcher.utter_message(text=message)
             dispatcher.utter_message(response="action_reset_slots_value")
         except (ValueError, KeyError, json.JSONDecodeError) as e:
-            message = "ስህተት ተፈጥሯል።"
+            message = "ለጊዜው አገልግሎቱን መስጠት አልተቻለም"
             dispatcher.utter_message(text=message)
             # print("submited")
           
