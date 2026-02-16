@@ -155,6 +155,7 @@ nlu:
     - አቤቱታ አስገባ
     - appeal
     - አቤቱታ
+    - appeal complaint
 
 - intent: provide_appeal_reason
   examples: |

@@ -6,15 +6,12 @@ rules:
   - intent: view_complaint_detail
   - action: action_view_complaint_detail
 
-- rule: appeal complaint
-  steps:
-  - intent: appeal_complaint
-  - action: action_auth_required
+# - rule: appeal complaint
+#   steps:
+#   - intent: appeal_complaint
+#   - action: action_auth_required
 
-- rule: submit appeal reason
-  steps:
-  - intent: provide_appeal_reason
-  - action: action_submit_appeal
+# Removed old submit appeal reason rule - now handled by appeal_form
 
 - rule: provide reference number for appeal
   steps:
@@ -190,4 +187,19 @@ rules:
   - action: action_upload_image
   - action: submit_compliant_en
   - action: action_reset_all_slots
+
+# === Appeal form rules ===
+- rule: Start appeal form
+  steps:
+  - intent: appeal_complaint  
+  - action: action_auth_required
+  # appeal_form is now triggered by action_auth_required or after login via previous_intent
+
+- rule: Submit appeal form
+  condition:
+  - active_loop: appeal_form
+  steps:
+  - action: appeal_form
+  - active_loop: null
+  - action: action_submit_appeal
 
