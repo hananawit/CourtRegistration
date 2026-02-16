@@ -89,6 +89,8 @@ class ActionAuthRequired(Action):
         if intent_name == "show_my_complaints":
             return [FollowupAction("action_show_my_complaints")]
         if intent_name in {"appeal_complaint", "provide_reference_no"}:
+            # User is logged in, directly go to action_appeal_complaint
+            # This will handle the flow properly - either show complaints list or activate form
             return [FollowupAction("action_appeal_complaint")]
 
         return []
@@ -311,6 +313,29 @@ class LoginForm(FormAction):
             return [SlotSet("phone", None), SlotSet("password", None), FollowupAction("login_form")]
 
         return [FollowupAction("action_login_user")]
+
+# =============== APPEAL FORM ===============
+class AppealForm(FormAction):
+    def name(self) -> Text:
+        return "appeal_form"
+
+    @staticmethod
+    def required_slots(tracker: Tracker) -> List[Text]:
+        return ["appeal_reason"]
+
+    def slot_mappings(self) -> Dict[Text, Union[Dict, List[Dict]]]:
+        return {
+            "appeal_reason": [self.from_text()],
+        }
+
+    def submit(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> List[Dict[Text, Any]]:
+        print("Appeal form submitted")
+        return [FollowupAction("action_submit_appeal")]
 
 # =============== MAIN REGISTRATION ACTION ===============
 class ActionRegisterUser(Action):
@@ -1084,12 +1109,12 @@ class ActionAppealComplaint(Action):
                         SlotSet("previous_intent", None),
                     ]
 
-                # Ask for appeal reason
-                dispatcher.utter_message(text="እባክዎ የይገባኝዎን ምክንያት በአጭር ያስገቡ።")
+                # Activate appeal form to collect appeal reason
                 return [
                     SlotSet("appeal_complaint_id", complaint_id),
                     SlotSet("appeal_reference_no", reference_no),
-                    SlotSet("is_appeal", True)
+                    SlotSet("is_appeal", True),
+                    FollowupAction("appeal_form")
                 ]
 
             except Exception as e:
@@ -1120,7 +1145,7 @@ class ActionSubmitAppeal(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        appeal_reason = tracker.latest_message.get("text", "").strip()
+        appeal_reason = tracker.get_slot("appeal_reason")
         complaint_id = tracker.get_slot("appeal_complaint_id")
         reference_no = tracker.get_slot("appeal_reference_no")
 
@@ -1129,8 +1154,17 @@ class ActionSubmitAppeal(Action):
             return [FollowupAction("action_show_my_complaints")]
 
         if not appeal_reason:
-            dispatcher.utter_message(text="እባክዎ የይገባኝዎን ምክንያት ያስገቡ።")
+            dispatcher.utter_message(text="እባክዎ የይግባኝዎን ምክንያት በዝርዝር ያስገቡ።")
             return []
+
+        # Validate appeal reason length (at least 20 characters)
+        if len(appeal_reason.strip()) < 20:
+            dispatcher.utter_message(text="የይገባኝ ምክንያት ቢያንስ 20 ፊደላት መሆን አለበት። እባክዎ በዝርዝር ያስገቡ።")
+            # Clear the appeal_reason slot and re-activate the form
+            return [
+                SlotSet("appeal_reason", None),
+                FollowupAction("appeal_form")
+            ]
 
         access_token, auth_events = require_auth(dispatcher, tracker)
         if not access_token:

@@ -130,6 +130,9 @@ slots:
   is_appeal:
     type: bool
     influence_conversation: false
+  appeal_reason:
+    type: text
+    influence_conversation: false  
 responses:
   utter_welcome:
   - text: "👋 ወደ ፍርድ ቤት ቅሬታ ስርዓት እንኳን በደህና መጡ።"
@@ -163,6 +166,9 @@ responses:
   
   utter_ask_content:
   - text: እባኮን የቅሬታዎን ፍሬ ሃሳብ ባጭሩ ይግለጹ
+
+  utter_ask_appeal_reason:
+  - text: "እባክዎ የይገባኝዎን ምክንያት ያስገቡ።"
 
  
 actions:
@@ -232,6 +238,11 @@ forms:
   form_upload_image:
     required_slots:
       upload_image:
+      - type: from_text
+
+  appeal_form:
+    required_slots:
+      appeal_reason:
       - type: from_text
 
 session_config:
