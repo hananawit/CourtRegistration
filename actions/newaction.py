@@ -523,6 +523,7 @@ class ActionLoginUser(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
         phone = tracker.get_slot("phone")
         password = tracker.get_slot("password")
 
@@ -655,7 +656,7 @@ class ActionShowMyComplaints(Action):
                     "reference_no": complaint.get("reference_no", "N/A")
                 })
 
-            # Instead of buttons, use quick_replies
+            # Use vertical buttons
             buttons = []
             for complaint in complaints:
                 ref_no = complaint.get("reference_no", "N/A")
@@ -665,7 +666,7 @@ class ActionShowMyComplaints(Action):
             dispatcher.utter_message(
                 text="እባክዎ ቅሬታ ይምረጡ:",
                 buttons=buttons,
-                button_type="vertical"                
+                button_type="vertical"
             )
 
         except Exception as e:
