@@ -87,7 +87,6 @@ nlu:
     - case_correct
     - /case_correct
 
-  # nlu.yml
 - intent: select_court_main_service
   examples: |
     - /select_court_main_service{"court_main_service_id": "21135bee-351d-43f5-aebe-0361838e336f"}
