@@ -7,6 +7,21 @@ nlu:
     - ውድ
     - hello
     - hi
+- intent: view_info_request
+  examples: |
+    - view info request
+    - መረጃ ጥያቄ አሳይ
+    - show info request
+
+- intent: respond_info_request
+  examples: |
+    - መልስ ስጥ
+    - ጥያቄ መልስ
+    - respond_info_request
+    - /respond_info_request
+    - respond info request
+    - መልስ መስጠት የሚፈልጉትን መረጃ ጥያቄ ይመልሱ
+    - መልስ መስጠት  
 
 - intent: register
   examples: |

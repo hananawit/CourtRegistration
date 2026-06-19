@@ -28,6 +28,8 @@ intents:
   - appeal_complaint
   - provide_appeal_reason
   - provide_reference_no
+  - view_info_request
+  - respond_info_request
 
 entities:
   - court_level_id
@@ -132,7 +134,30 @@ slots:
     influence_conversation: false
   appeal_reason:
     type: text
-    influence_conversation: false  
+    influence_conversation: false
+# =============== INFO REQUEST SLOTS ===============
+  # Stored from complaint details
+  current_info_request_id:
+    type: text
+    influence_conversation: false 
+  current_info_request_message:
+    type: text
+    influence_conversation: false
+  
+  # Info Response Form Slots
+  awaiting_info_response:
+    type: bool
+    influence_conversation: false
+    initial_value: false
+  
+  info_response_text:
+    type: text
+    influence_conversation: false
+  
+  has_evidence:
+    type: bool
+    influence_conversation: false
+
 responses:
   utter_welcome:
   - text: "👋 ወደ ፍርድ ቤት ቅሬታ ስርዓት እንኳን በደህና መጡ።"
@@ -170,7 +195,56 @@ responses:
   utter_ask_appeal_reason:
   - text: "እባክዎ የይገባኝዎን ምክንያት ያስገቡ።"
 
- 
+  utter_ask_info_response:
+  - text: "እባክዎ መልስዎን ያስገቡ።"
+  
+  utter_ask_info_attachment:
+    - text: "ለምላሽዎ ማስረጃ አለዎት?"
+      buttons:
+      - title: "አዎ አለኝ"
+        payload: '/affirm'
+      - title: "አይ የለኝም"
+        payload: '/deny'
+      button_type: vertical
+  
+  utter_info_request_message:
+    - text: "📨 የተጠየቀ መረጃ:\n{info_request_message}"
+  
+  utter_info_response_options:
+    - text: "ምላሽ መስጠት ይፈልጋሉ?"
+      buttons:
+      - title: "ጥያቄ መልስ"
+        payload: '/respond_info_request'
+      - title: "ተመለስ"
+        payload: '/view_complaint_detail'
+      button_type: vertical
+
+  utter_ask_info_response_form_info_response_text:
+  - text: "እባክዎ መልስዎን ያስገቡ።"
+
+  utter_ask_info_response_form_has_evidence:
+  - text: "ለምላሽዎ ማስረጃ አለዎት?"
+    buttons:
+    - title: "አዎ አለኝ"
+      payload: '/affirm'
+    - title: "አይ የለኝም"
+      payload: '/deny'
+    button_type: vertical
+  
+  utter_info_response_success:
+    - text: "ምላሽዎ በተሳካ ሁኔታ ተልኳል።"
+  
+  utter_info_response_failed:
+    - text: "ምላሽ መስጠት አልተሳካም። እባክዎ ደግመው ይሞክሩ።"
+  
+  utter_no_info_request:
+    - text: "ምንም ተጨማሪ መረጃ አይጠበቅም።"
+
+  utter_ask_upload_image:
+  - text: "እባክዎ ፋይል ያስገቡ (ፎቶ፣ ዶኩመንት ወይም ሌላ ማስረጃ)"
+
+  utter_ask_form_upload_image_upload_image:
+  - text: "እባክዎ ፋይል ያስገቡ (ፎቶ፣ ዶኩመንት ወይም ሌላ ማስረጃ)"
 actions:
   - action_register_user
   - action_login_user
@@ -207,6 +281,9 @@ actions:
   - action_view_complaint_detail
   - action_appeal_complaint
   - action_submit_appeal
+  - action_view_info_request
+  - action_handle_info_response_submit
+  - action_submit_info_response
 
 
 forms:
@@ -244,7 +321,17 @@ forms:
     required_slots:
       appeal_reason:
       - type: from_text
-
+  info_response_form:
+    required_slots:
+      info_response_text:
+      - type: from_text
+      has_evidence:
+      - type: from_intent
+        intent: affirm
+        value: true
+      - type: from_intent
+        intent: deny
+        value: false
 session_config:
   session_expiration_time: 120
   carry_over_slots_to_new_session: false
