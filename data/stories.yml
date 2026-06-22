@@ -1,56 +1,536 @@
-# version: "2.0"
+version: "2.0"
 
-# stories:
+stories:
 
-# - story: complaint submission flow
-#   steps:
-#   - intent: start_complaint
-#   - action: action_check_auth
-#   - intent: register
-#   - action: registration_form
-#   - active_loop: registration_form
-#   - action: registration_form
-#   - active_loop: null
-#   - action: action_register_user
-#   - action: login_form
-#   - active_loop: login_form
-#   - action: login_form
-#   - active_loop: null
-#   - action: action_login_user
-#   - action: clarification_form_am
-#   - active_loop: clarification_form_am
-#   - action: clarification_form_am
-#   - active_loop: null
-#   - action: check_ref_number_am
-#   - intent: confirm_case_correct
-#   - action: action_fetch_court_leveles
-#   - intent: select_court_level
-#   - action: action_save_court_level
-#   - action: action_fetch_branches_by_court_level
-#   - intent: select_branch
-#   - action: action_save_branch
-#   - action: action_fetch_court_main_services
-#   - intent: select_court_main_service
-#   - action: action_save_court_main_service
-#   - action: action_fetch_subunit_one
-#   - intent: select_subunit_one
-#   - action: action_save_subunit_one
-#   - action: action_fetch_subunit_two
-#   - intent: select_subunit_two
-#   - action: action_save_subunit_two
-#   - action: action_fetch_subunit_three
-#   - intent: select_subunit_three
-#   - action: action_save_subunit_three
-#   - action: action_ask_attachment
-#   - intent: deny
-#   - action: action_save_attachment
-#   - action: content_compliant_form
-#   - active_loop: content_compliant_form
-#   - slot_was_set:
-#     - content: "some complaint content"
-#     - new_slot: "accept"
-#   - action: content_compliant_form
-#   - active_loop: null
-#   - action: action_new_slot
-#   - action: submit_compliant_en
-#   - action: action_reset_all_slots
+
+- story: to get main mainu 
+  steps:
+  - intent: start
+  - action: utter_start
+  - action: utter_welcome_am
+  - action: utter_main_menu_am
+  - action: action_reset_all_slots
+
+- story: to get main mainu 
+  steps:
+  - intent: service_complaintTo_am
+  - action: utter_service_complaintTo_am
+  - action: action_reset_all_slots
+  
+- story: to federal supre court 
+  steps:
+  - intent: federal_supreme_court
+  - action: utter_federal_supreme_court 
+  - action: action_reset_all_slots
+
+
+- story: to about 
+  steps:
+  - intent: about_fsc_am
+  - action: utter_about_fsc_am
+  - action: action_reset_all_slots
+
+- story: to about hearing
+  steps:
+  - intent: about_the_hearing
+  - action: utter_about_the_hearing
+  - action: action_reset_all_slots
+
+
+
+- story: to get main mainu 
+  steps:
+  - intent: open_file_civil_hearing
+  - action: utter_open_file_civil_hearing
+  - action: action_reset_all_slots
+
+
+
+- story: to get main mainu 
+  steps:
+  - intent: bankruptcy_court_jurisdiction
+  - action: utter_bankruptcy_court_jurisdiction
+  - action: action_reset_all_slots
+
+- story: to get main mainu 
+  steps:
+  - intent: open_burglary_file
+  - action: utter_open_burglary_file
+  - action: action_reset_all_slots
+
+- story: to get main mainu 
+  steps:
+  - intent: prerequisite_submission_answer_hearing
+  - action: utter_prerequisite_submission_answer_hearing
+  - action: action_reset_all_slots
+
+- story: to get main mainu 
+  steps:
+  - intent: Take_copy_decision_hearing
+  - action: utter_Take_copy_decision_hearing
+  - action: action_reset_all_slots
+
+
+
+- story: to get file complaint mainu 
+  steps:
+  - intent: file_complaint_bankruptcy_court_jurisdiction
+  - action: utter_file_complaint_bankruptcy_court_jurisdiction
+  - action: action_reset_all_slots
+
+- story: to get file complaint mainu 
+  steps:
+  - intent: answer_submission_answer_hearing
+  - action: utter_answer_submission_answer_hearing
+  - action: action_reset_all_slots
+
+- story: to get main mainu 
+  steps:
+  - intent: court_service
+  - action: utter_court_service
+  - action: action_reset_all_slots
+
+- story: to get main mainu 
+  steps:
+  - intent: case_before_appellate_court
+  - action: utter_case_before_appellate_court
+  - action: action_reset_all_slots
+
+- story: to get main mainu 
+  steps:
+  - intent: Open_expiren_file_civil_appeals
+  - action: utter_Open_expiren_file_civil_appeals
+  - action: action_reset_all_slots
+
+
+- story: to get main mainu 
+  steps:
+  - intent: Appeal_hearing_answer_receive
+  - action: utter_Appeal_hearing_answer_receive
+  - action: action_reset_all_slots
+
+- story: appellate court required received answer
+  steps:
+  - intent: appellate_court_required_receive_answer_reply
+  - action: utter_appellate_court_required_receive_answer_reply
+  - action: action_reset_all_slots
+
+
+- story: appellate court answer
+  steps:
+  - intent: appellate_court_answer
+  - action: utter_appellate_court_answer
+  - action: action_reset_all_slots
+
+- story: filing petition civiel appeals
+  steps:
+  - intent: filing_petitions_civil_appeals_court
+  - action: utter_filing_petitions_civil_appeals_court
+  - action: action_reset_all_slots
+
+
+- story: court appeal
+  steps:
+  - intent: court_appeal
+  - action: utter_court_appeal
+  - action: action_reset_all_slots
+
+
+- story: open creiminal appeals court file
+  steps:
+  - intent: open_criminal_appeals_court_file
+  - action: utter_open_criminal_appeals_court_file
+  - action: action_reset_all_slots
+
+
+- story: address petitiion submitted criminal court
+  steps:
+  - intent: address_petitions_submitted_criminal_court
+  - action: utter_address_petitions_submitted_criminal_court
+  - action: action_reset_all_slots
+
+
+
+- story: criminal appeals open expired
+  steps:
+  - intent: criminal_appeals_open_expired_file
+  - action: utter_criminal_appeals_open_expired_file
+  - action: action_reset_all_slots
+
+- story: fulfilled submit various petitions
+  steps:
+  - intent: Fulfilled_submit_various_petitions_related_record
+  - action: utter_Fulfilled_submit_various_petitions_related_record
+  - action: action_reset_all_slots
+
+- story: binding decision hearing available
+  steps:
+  - intent: Binding_decisions_hearing_available
+  - action: utter_Binding_decisions_hearing_available
+  - action: action_reset_all_slots
+
+- story: binding decision hearing available
+  steps:
+  - intent: federal_supreme_court_address
+  - action: utter_federal_supreme_court_address
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: main_supreme_court_addrees
+  - action: utter_main_supreme_court_addrees
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: federal_hearing_address
+  - action: utter_federal_hearing_address
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: federal_Supreme_Court_Civil_Appeals
+  - action: utter_federal_Supreme_Court_Civil_Appeals
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: federal_Supreme_Court_Criminal_Appeals
+  - action: utter_federal_Supreme_Court_Criminal_Appeals
+  - action: action_reset_all_slots
+
+
+
+- story: address 
+  steps:
+  - intent: directorate_Judgment_Execution_Federal_Courts
+  - action: utter_directorate_Judgment_Execution_Federal_Courts
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: children_Justice_Project_Office_Head
+  - action: utter_children_Justice_Project_Office_Head
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: defense_attorney_office
+  - action: utter_defense_attorney_office
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: federal_Supreme_Sharia_Court
+  - action: utter_federal_Supreme_Sharia_Court
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: federal_high_court
+  - action: utter_federal_high_court
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: federal_high_court_addrees
+  - action: utter_federal_high_court_addrees
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: Main_office_high_court
+  - action: utter_Main_office_high_court
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: Direct_prosecution_civil_trial
+  - action: utter_Direct_prosecution_civil_trial
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: Direct_prosecution_criminal_trial
+  - action: utter_Direct_prosecution_criminal_trial
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: Bole_category_hearing
+  - action: utter_Bole_category_hearing
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: Arada_category_criminal_hearing
+  - action: utter_Arada_category_criminal_hearing
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: Rotating_category_hearings
+  - action: utter_Rotating_category_hearings
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: Hawassa_categort_hearing
+  - action: utter_Hawassa_categort_hearing
+  - action: action_reset_all_slots
+
+
+- story: address 
+  steps:
+  - intent: Diradawa_category_hearing
+  - action: utter_Diradawa_category_hearing
+  - action: action_reset_all_slots
+
+- story: address 
+  steps:
+  - intent: Directorate_Judgment_Execution
+  - action: utter_Directorate_Judgment_Execution
+  - action: action_reset_all_slots
+
+- story: federal Court First Instance
+  steps:
+  - intent: Federal_Court_First_Instance
+  - action: utter_Federal_Court_First_Instance
+  - action: action_reset_all_slots
+
+- story: First Instance address
+  steps:
+  - intent: Federal_Court_First_Instance_address
+  - action: utter_Federal_Court_First_Instance_address
+  - action: action_reset_all_slots
+
+- story: Arada medibe chelote address
+  steps:
+  - intent: Arada_medibe_chelote_address
+  - action: utter_Arada_medibe_chelote_address
+  - action: action_reset_all_slots
+
+- story: Trade investment hearing address
+  steps:
+  - intent: Trade_investment_hearing_address
+  - action: utter_Trade_investment_hearing_address
+  - action: action_reset_all_slots
+
+- story: Lideta first instance address
+  steps:
+  - intent: Lideta_first_instance_address
+  - action: utter_Lideta_first_instance_address
+  - action: action_reset_all_slots
+
+- story: Kolifa first instance address
+  steps:
+  - intent: Kolifa_first_instance_address
+  - action: utter_Kolifa_first_instance_address
+  - action: action_reset_all_slots
+
+- story: Nifas silk first instance address
+  steps:
+  - intent: Nifas_silk_first_instance_address
+  - action: utter_Nifas_silk_first_instance_address
+  - action: action_reset_all_slots
+
+- story: Menagesh first insance address
+  steps:
+  - intent: Menagesh_first_insance_address
+  - action: utter_Menagesh_first_insance_address
+  - action: action_reset_all_slots
+
+- story: Limicora first instance address
+  steps:
+  - intent: Limicora_first_instance_address
+  - action: utter_Limicora_first_instance_address
+  - action: action_reset_all_slots
+
+- story: Yeka first instance address
+  steps:
+  - intent: Yeka_first_instance_address
+  - action: utter_Yeka_first_instance_address
+  - action: action_reset_all_slots
+
+- story: Akaki first instance address
+  steps:
+  - intent: Akaki_first_instance_address
+  - action: utter_Akaki_first_instance_address
+  - action: action_reset_all_slots
+
+- story: AddisKetima first instance address
+  steps:
+  - intent: AddisKetima_first_instance_address
+  - action: utter_AddisKetima_first_instance_address
+  - action: action_reset_all_slots
+
+- story: Kerkose first instance address
+  steps:
+  - intent: Kerkose_first_instance_address
+  - action: utter_Kerkose_first_instance_address
+  - action: action_reset_all_slots
+
+- story: Bole first instance address
+  steps:
+  - intent: Bole_first_instance_address
+  - action: utter_Bole_first_instance_address
+  - action: action_reset_all_slots
+
+- story: DiraDiwa first instance address
+  steps:
+  - intent: DiraDiwa_first_instance_address
+  - action: utter_DiraDiwa_first_instance_address
+  - action: action_reset_all_slots
+
+- story: Directorate Federal Judgment Execution address
+  steps:
+  - intent: Directorate_Federal_Judgment_Execution_address
+  - action: utter_Directorate_Federal_Judgment_Execution_address
+  - action: action_reset_all_slots
+
+- story: Children Justice Office Address
+  steps:
+  - intent: Children_Justice_Office_Address
+  - action: utter_Children_Justice_Office_Address
+  - action: action_reset_all_slots
+
+- story: have_fulfill
+  steps:
+  - intent: have_fulfill
+  - action: utter_have_fulfill
+  - action: action_reset_all_slots
+
+
+- story: Information general services provide
+  steps:
+  - intent: Information_general_services_provide
+  - action: utter_Information_general_services_provide
+  - action: action_reset_all_slots
+
+- story: Appoint defense attorney
+  steps:
+  - intent: Appoint_defense_attorney
+  - action: utter_Appoint_defense_attorney
+  - action: action_reset_all_slots
+
+- story: Meet open record
+  steps:
+  - intent: Meet_open_record
+  - action: utter_Meet_open_record
+  - action: action_reset_all_slots
+
+- story: meet open record performance
+  steps:
+  - intent: meet_open_record_performance
+  - action: utter_meet_open_record_performance
+  - action: action_reset_all_slots
+
+- story: Conditions need fulfill submit
+  steps:
+  - intent: Conditions_need_fulfill_submit
+  - action: utter_Conditions_need_fulfill_submit
+  - action: action_reset_all_slots
+
+- story: Prerequisites obtain copy decision
+  steps:
+  - intent: Prerequisites_obtain_copy_decision
+  - action: utter_Prerequisites_obtain_copy_decision
+  - action: action_reset_all_slots
+  
+
+- story: Complete get copy appeal
+  steps:
+  - intent: Complete_get_copy_appeal
+  - action: utter_Complete_get_copy_appeal
+  - action: action_reset_all_slots
+
+- story: Meet take copy criminal appeal
+  steps:
+  - intent: Meet_take_copy_criminal_appeal
+  - action: utter_Meet_take_copy_criminal_appeal
+  - action: action_reset_all_slots
+
+
+- story: Prerequisites recovering 
+  steps:
+  - intent: Prerequisites_recovering_money_guarantee
+  - action: utter_Prerequisites_recovering_money_guarantee
+  - action: action_reset_all_slots
+
+
+- story: Advance recover
+  steps:
+  - intent: Advance_recover_money_paid_arbitration
+  - action: utter_Advance_recover_money_paid_arbitration
+  - action: action_reset_all_slots
+
+
+
+- story: What visible issues
+  steps:
+  - intent: What_visible_issues
+  - action: utter_What_visible_issues
+  - action: action_reset_all_slots
+
+- story: complaint against employee
+  steps:
+  - intent: complaint_against_employee_Directorate_Justice
+  - action: utter_complaint_against_employee_Directorate_Justice
+  - action: action_reset_all_slots
+
+- story: Appoint defense
+  steps:
+  - intent: Appoint_defense_attorney
+  - action: utter_Appoint_defense_attorney
+  - action: action_reset_all_slots
+
+- story: Contract Gudcha
+  steps:
+  - intent: Contract_Gudcha_submitted_approve_court
+  - action: utter_Contract_Gudcha_submitted_approve_court
+  - action: action_reset_all_slots
+
+- story: About record appointment
+  steps:
+  - intent: About_record_appointment
+  - action: utter_About_record_appointment
+  - action: action_reset_all_slots
+
+- story: Prerequisites recovering
+  steps:
+  - intent: Prerequisites_recovering_money_guarantee
+  - action: utter_Prerequisites_recovering_money_guarantee
+  - action: action_reset_all_slots
+
+- story: Advance recover money
+  steps:
+  - intent: Advance_recover_money_paid_arbitration
+  - action: utter_Advance_recover_money_paid_arbitration
+  - action: action_reset_all_slots
+
+- story: Complaints services provided
+  steps:
+  - intent: Complaints_services_provided_administrative_staff
+  - action: utter_Complaints_services_provided_administrative_staff
+  - action: action_reset_all_slots
+
+- story: Complaints services provided
+  steps:
+  - intent: Complaints_services_provided_Registrar
+  - action: utter_Complaints_services_provided_Registrar
+  - action: action_reset_all_slots
+
+- story: Complaints against judges
+  steps:
+  - intent: Complaints_against_judges
+  - action: utter_Complaints_against_judges
+  - action: action_reset_all_slots
+
+- story: Complaint filed judicial
+  steps:
+  - intent: Complaint_filed_judicial_service_registry
+  - action: utter_Complaint_filed_judicial_service_registry
+  - action: action_reset_all_slots
+
+
+
