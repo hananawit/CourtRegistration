@@ -1,35 +1,135 @@
-version: "2.0"
+version: '2.0'
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
 
 intents:
-  - greet
-  - register
-  - login
-  - logout
-  - start_complaint
-  - cancel
-  - select_branch
-  - confirm_case_correct
-  - confirm_case_wrong
-  - case_correct
-  - case_wrong
-  - select_court_main_service
-  - select_subunit_one
-  - select_subunit_two
-  - select_subunit_three
-  - select_court_level
-  - affirm
-  - deny
-  - accept
-  - reject
-  - provide_content
-  - view_complaint_detail
-  - show_my_complaints
-  - select_complaint
-  - appeal_complaint
-  - provide_appeal_reason
-  - provide_reference_no
-  - view_info_request
-  - respond_info_request
+- register
+- login
+- logout
+- start_complaint
+- cancel
+- select_branch
+- confirm_case_correct
+- confirm_case_wrong
+- case_correct
+- case_wrong
+- select_court_main_service
+- select_subunit_one
+- select_subunit_two
+- select_subunit_three
+- select_court_level
+- affirm
+- deny
+- accept
+- reject
+- provide_content
+- view_complaint_detail
+- show_my_complaints
+- select_complaint
+- appeal_complaint
+- provide_appeal_reason
+- provide_reference_no
+- view_info_request
+- respond_info_request
+
+- select_option
+- service_complaintTo_am
+- Registrar_of_Civil_Appeals_am
+- start
+- compliantTo
+- Federal_Court_First_Instance
+- Federal_Court_First_Instance_address
+- Arada_medibe_chelote_address
+- Trade_investment_hearing_address
+- Lideta_first_instance_address
+- Kolifa_first_instance_address
+- Nifas_silk_first_instance_address
+- Menagesh_first_insance_address
+- Limicora_first_instance_address
+- Yeka_first_instance_address
+- Akaki_first_instance_address
+- AddisKetima_first_instance_address
+- Kerkose_first_instance_address
+- Bole_first_instance_address
+- DiraDiwa_first_instance_address
+- Directorate_Federal_Judgment_Execution_address
+- Children_Justice_Office_Address
+- select_main
+- select_main2
+- main_menu_am
+- about_fsc_am
+- federal_supreme_court
+- about_the_hearing
+- open_file_civil_hearing
+- bankruptcy_court_jurisdiction
+- open_burglary_file
+- prerequisite_submission_answer_hearing
+- Take_copy_decision_hearing
+- file_complaint_bankruptcy_court_jurisdiction
+- answer_submission_answer_hearing
+- case_before_appellate_court
+- open_civil_appeal_court_file
+- Open_expiren_file_civil_appeals
+- Appeal_hearing_answer_receive
+- appellate_court_required_receive_answer_reply
+- appellate_court_answer
+- filing_petitions_civil_appeals_court
+- court_appeal
+- open_criminal_appeals_court_file
+- court_service
+- address_petitions_submitted_criminal_court
+- criminal_appeals_open_expired_file
+- Fulfilled_submit_various_petitions_related_record
+- Binding_decisions_hearing_available
+- federal_supreme_court_address
+- main_supreme_court_addrees
+- federal_hearing_address
+- federal_Supreme_Court_Civil_Appeals
+- federal_Supreme_Court_Criminal_Appeals
+- directorate_Judgment_Execution_Federal_Courts
+- children_Justice_Project_Office_Head
+- defense_attorney_office
+- federal_Supreme_Sharia_Court
+- federal_high_court
+- federal_high_court_addrees
+- Main_office_high_court
+- Direct_prosecution_civil_trial
+- Direct_prosecution_criminal_trial
+- Bole_category_hearing
+- Kality_category_hearing
+- Arada_category_criminal_hearing
+- Rotating_category_hearings
+- Hawassa_categort_hearing
+- Diradawa_category_hearing
+- Directorate_Judgment_Execution
+- have_fulfill
+- compliant
+- re_apply_compliant_am
+- compliant_status
+- AGREED
+- DISAGREED 
+- case_status_menu_am
+- What_visible_issues
+- complaint_against_employee_Directorate_Justice
+- Contract_Gudcha_submitted_approve_court
+- About_record_appointment
+- Prerequisites_recovering_money_guarantee
+- Advance_recover_money_paid_arbitration
+- Complaints_services_provided_administrative_staff
+- Complaints_services_provided_Registrar
+- Complaints_against_judges
+- Complaint_filed_judicial_service_registry
+- Information_general_services_provide
+- Appoint_defense_attorney
+- Meet_open_record
+- meet_open_record_performance
+- Conditions_need_fulfill_submit
+- Prerequisites_obtain_copy_decision
+- Complete_get_copy_appeal
+- Meet_take_copy_criminal_appeal
+- frequently_asked_questions
+- case_status
 
 entities:
   - court_level_id
@@ -158,20 +258,15 @@ slots:
     type: bool
     influence_conversation: false
 
+
+
 responses:
-  utter_welcome:
-  - text: "👋 ወደ ፍርድ ቤት ቅሬታ ስርዓት እንኳን በደህና መጡ።"
-  
+
+  utter_start:
+  - text: "ሰላምና ጤና ይስጥልን"
+
   utter_cancel:
-  - text: "ምንም ችግር የለውም። ሌላ ጊዜ ይበሉን።"
-  utter_ask_new_slot:
-  - button_type: vertical
-    buttons:
-    - payload: accept
-      title: አዎ አለኝ
-    - payload: reject
-      title: አይ የለኝም
-    text:  የምታያይዙት ተጨማሪ ማስረጃ አሎት?
+  - text: "ምንም ችግር የለውም። ሌላ ጊዜ እንገናኛለን"
 
   utter_auth_required:
   - text: "📋 ቅሬታ ለመግባት መመዝገብ ወይም መግባት ያስፈልግዎታል።"
@@ -240,50 +335,708 @@ responses:
   utter_no_info_request:
     - text: "ምንም ተጨማሪ መረጃ አይጠበቅም።"
 
-  utter_ask_upload_image:
-  - text: "እባክዎ ፋይል ያስገቡ (ፎቶ፣ ዶኩመንት ወይም ሌላ ማስረጃ)"
-
   utter_ask_form_upload_image_upload_image:
   - text: "እባክዎ ፋይል ያስገቡ (ፎቶ፣ ዶኩመንት ወይም ሌላ ማስረጃ)"
+
+  utter_welcome_am:
+  - image: https://th.bing.com/th/id/R.1494d35babbf994cae5d43e270443af9?rik=W5L9295AX1xFmA&pid=ImgRaw&r=0
+    text: እንኳን ወደ ፌደራል ጠቅላይ ፍርድ ቤት በደህና መጡ። የምናቀርባቸውን አገልግሎቶች በተመለከተ ማንኛውንም መረጃ እየፈለጉ ነው?
+ 
+  utter_additional_slot:
+  - button_type: vertical
+    buttons:
+    - payload: /AGREED
+      title: ተስማምቻለሁ
+    - payload: /DISAGREED
+      title: አልተስማማሁም
+    text:  በተሰጦት ምላሽ :-
+ 
+  utter_ask_new_slot:
+  - button_type: vertical
+    buttons:
+    - payload: accept
+      title: አዎ አለኝ
+    - payload: reject
+      title: አይ የለኝም
+    text:  የምታያይዙት ተጨማሪ ማስረጃ አሎት?
+
+  utter_AGREED_complaint:
+  - text: "በቅሬታ ምላሽ ሰለተስማሙ አመሰግናለሁ!"
+
+  utter_main_menu_am:
+  - button_type: vertical
+    buttons:
+    - payload: /federal_supreme_court
+      title: ጠቅላይ ፍርድ ቤት
+    - payload: /federal_high_court
+      title: ፌደራል ከፍተኛ ፍርድ 
+    - payload: /Federal_Court_First_Instance
+      title: ፌደራል መጀመሪያ ደረጃ ፍርድ ቤት 
+    text: ዋና ማውጫ
+
+  utter_Federal_Court_First_Instance:
+  - button_type: vertical
+    buttons:
+    - payload: /federal_Court_First_Instance_address
+      title:  አድራሻ
+    - payload: /have_fulfill
+      title: የተለያዮ ጉዳዮችን ለማስፈጸም መሟላት ያለብኝ ነገር
+    - payload: /main_menu_am
+      title: <-- ይመለሱ
+    text: ፌደራል መጀመሪያ ደረጃ ፍርድ ቤት 
+
+  utter_have_fulfill:
+  - button_type: vertical
+    buttons:
+    - payload: / Information_general_services_provide
+      title: ስለሚሰጣቸው አጠቃላይ አገልግሎቶች መረጃ ማግኘት የምችለው
+    - payload: / Appoint_defense_attorney
+      title: የተከላካይ ጠበቃ ጠበቃ ማስመደብ የምችለው
+    - payload: / Meet_open_record
+      title: መዝገብ ለመክፈት ማሟላት ያለብኝ
+    - payload: / meet_open_record_performance
+      title: የአፈጻጸም መዝገብ ለመክፈት ማሟላት ያለብኝ
+    - payload: / Conditions_need_fulfill_submit
+      title: መልስ ለማቅረብ ማሟላት ያለብኝ ቅድመ ሁኔታ ምንድን
+    - payload: / Prerequisites_obtain_copy_decision
+      title: የውሳኔ ግልባጭ ለማግኘት ማሟላት ያለብኝ ቅድመ
+    - payload: / Complete_get_copy_appeal
+      title: የፍታብሄር ይግባኝ ግልባጭ ለመውሰድ ማሟላት ያለብኝ
+    - payload: / Meet_take_copy_criminal_appeal
+      title: የወንጀል ይግባኝ ግልባጭ ለመውሰድ ማሟላት ያለብኝ
+    - payload: / Prerequisites_recovering_money_guarantee
+      title: በዋስትና የተያዘ ገንዘብ ለማስመለስ ምን ምን ቅድመ
+    - payload: / Advance_recover_money_paid_arbitration
+      title: ለዳኝነት የተከፈለ ገንዘብ ለማስመለስ ቅድመ
+    - payload: / main_menu_am
+      title: <-- ይመለሱ
+    text: ፌደራል መጀመሪያ ደረጃ ፍርድ ቤት
+
+  utter_frequently_asked_questions:
+  - button_type: vertical
+    buttons:
+    - payload: /What_visible_issues
+      title: የሚታዩ ጉዳዮችን ምን ምን ናቸው
+    - payload: /complaint_against_employee_Directorate_Justice
+      title: በፍርድ አፈጻጸም ዳይሬክቶሬት ሰራተኛ ወይም ባለሙያ ላይ ቅሬታ የሚቀርበው
+
+    - payload: /Contract_Gudcha_submitted_approve_court
+      title: የጉድፈቻ ውል በፍርድ ቤት ለማጸደቅ ወይም በክልል ፍርድ ቤቶች የጸደቀን የጉድፈቻ
+    - payload: /About_record_appointment
+      title: የመዝገብ ቀጠሮ ማወቅ የምችለው
+
+  
+    - payload: /Complaints_services_provided_administrative_staff
+      title: የአስተዳደር ሰራተኞች በሚሰጡት አገልግሎት ላይ ቅሬታ ማቅረብ
+    - payload: /Complaints_services_provided_Registrar
+      title: በሬጅስትራር የሚሰጥ አገልግሎት ላይ ቅሬታ የሚቀርበው
+    - payload: /Complaints_against_judges
+      title: ዳኞች ላይ ቅሬታ የሚቀርበው
+    - payload: /Complaint_filed_judicial_service_registry
+      title: በዳኝነት አገልግሎት ወይም በመዝገብ ላይ ቅሬታ የሚቀርበው
+    - payload: /main_menu_am
+      title: <-- ይመለሱ
+    text: በተደጋጋሚ የሚጠየቁ ጥያቆወች
+
+  utter_federal_Court_First_Instance_address:
+  - button_type: vertical
+    buttons:
+    - payload: /Federal_Court_First_Instance_address
+      title: የፌደራል መጀመሪያ ደረጃ ፍርድ ቤት ዋናው መስሪያ ቤት
+    - payload: /Arada_medibe_chelote_address
+      title: አራዳ ምድብ ችሎት
+    - payload: /Trade_investment_hearing_address
+      title: ንግድ እና ኢንቨስትመንት ምድብ ችሎት አድራሻ
+    - payload: /Lideta_first_instance_address
+      title: ልደታ ምድብ ችሎት አድራሻ 
+    - payload: /Kolifa_first_instance_address
+      title: ኮልፌ ቀራንዮ ምድብ ችሎት አድራሻ
+    - payload: /Nifas_silk_first_instance_address
+      title: ንፋስ ስልክ ላፍቶ  ምድብ ችሎት አድራሻ
+    - payload: /Menagesh_first_insance_address
+      title: መናገሻ ምድብ ችሎት አድራሻ
+    - payload: /Limicora_first_instance_address
+      title: ለሚ ኩራ ምድብ ችሎት አድራሻ
+    - payload: /Yeka_first_instance_address
+      title: የካ ምድብ ችሎት አድራሻ
+    - payload: /Akaki_first_instance_address
+      title: አቃቂ ቃሊቲ ምድብ ችሎት አድራሻ
+    - payload: /AddisKetima_first_instance_address
+      title: አዲስ ከተማ ምድብ ችሎት አድራሻ
+    - payload: /Kerkose_first_instance_address
+      title: ቂርቆስ ምድብ ችሎት አድራሻ
+    - payload: /Bole_first_instance_address
+      title: ቦሌ ምድብ ችሎት አድራሻ
+    - payload: /DiraDiwa_first_instance_address
+      title: ድሬደዋ ምድብ ችሎት አድራሻ
+    - payload: /Directorate_Federal_Judgment Execution_address
+      title: የፌደራል ፍርድ አፈጻጸም ዳይሬክቶሬት አድራሻ
+    - payload: /Children_Justice_Office_Address
+      title: የህጻናት ፍትህ ፕሮጀክት ጽ/ቤት አድራሻ
+    text: አድራሻ
+
+
+  utter_federal_supreme_court:
+  - button_type: vertical
+    buttons:
+    - payload: /about_fsc_am
+      title: ስለ ጠቅላይ ፍርድ ቤት 
+    - payload: /start_complaint
+      title:  የአገልግሎት ቅሬታ
+    - payload: /show_my_complaints
+      title: የፍርድ ሁኔታ መከታተያ
+    - payload: /federal_supreme_court_address
+      title: አድራሻ
+    - payload: /main_menu_am
+      title: <-- ይመለሱ  
+    text: ጠቅላይ ፍርድ
+
+
+    
+  utter_about_fsc_am:
+  - button_type: vertical 
+    buttons:
+    - payload: /about_the_hearing
+      title: ስለ ሰበር ሰሚ ችሎት 
+    - payload: /court_service
+      title: ስለ ችሎት አገልግሎት
+    - payload: /court_appeal
+      title: ወንጀል ይግባኝ ሰሚ ፍ/ቤት
+    - payload: /federal_supreme_court
+      title:  <-- ይመለሱ  
+    text: ሰበር ሰሚ ችሎት አገልግሎቶች
+
+
+
+  utter_about_the_hearing:
+  - button_type: vertical
+    buttons:
+    - payload: /open_file_civil_hearing
+      title: ለሰበር ሰሚ ችሎት የፍትሐብሔር ፋይል ለማስከፈት
+    - payload: /bankruptcy_court_jurisdiction
+      title: የሰበር ሰሚ ችሎት የሚያያቸው ጉዳዮች  
+    - payload: /open_burglary_file
+      title: ሰበር ሰሚ ችሎት ፋይል ለማስከፈት 
+    - payload: /prerequisite_submission_answer_hearing 
+      title: ለሰበር  ሰሚ ችሎት መልስ እና የመልስ-መልስ ለመስጠት አድራሻ
+    - payload: /Take_copy_decision_hearing
+      title: ለሰበር ሰሚ ችሎት መልስ/የመልስ መልስ ለመስጠት የሚሟላው 
+    - payload: /file_complaint_bankruptcy_court_jurisdiction
+      title: መዝገብ ጋር በተያያዘ ለሰበር ሰሚ ችሎት የሚቀርቡ አቤቱታዎች አድራሻ
+    - payload: /answer_submission_answer_hearing
+      title: ለሰበር ሰሚ ችሎት መልስ/የመልስ መልስ ለመቀበል የሚሟሉት 
+    - payload: /about_fsc_am
+      title:  <-- ይመለሱ  
+    text: ስለ ሰበር ሰሚ ችሎት
+
+  utter_open_file_civil_hearing:
+
+  - text: "•	የሰበር አቤቱታው በሰነድ እና በሶፍት ኮፒ፣ \n
+
+          •	የሰበርአቤቱታ መግቢያውን ሳይጨምር በ3 ገፅ ብቻ የተዘጋጀ፣ \n
+
+          •	በአቤቱታው ላይ የአመልካቾች እና የተጠሪዎች ፤የተቋሙን ስም መጻፍ፣ \n
+          
+          •	የሰበርአቤቱታአቅራቢዉ  የስልክ ቁጥር፣ ኢ.ሜይል፣  \n
+
+          •	የሰበር አቤቱታ አቅራቢዉ አመልካች ከሆነ መታወቂያ፣ \n
+
+          •	ህጋዊ ወኪል ጠበቃ ነገረ ፈጅ ከሆነ  ውል፣ውክልና፣ዋናውን እና ኮፒ ይዞ መቅረብ፣ \n
+
+          •	አቤቱታው ሲቀርብ ተገቢ የዳኝነት ክፍያ፣ \n
+
+          •	በደሀ ደንብ የሚቀርብ ከሆነ ማመልከቻው በቃለ መሐላ የተደገፈ፣ \n
+
+          •	ክርክሩ የማይገመት ከሆነ ግምቱን መጻፍ፣ \n
+
+          •	የስር ፍቤት ውሳኔ ግልባጮች በማህተም የተረጋገጠ ዋናው፣ \n
+
+          •	 ከአማርኛ ውጭ በሆኑ ቋንቋ የተጻፈ ከሆነ ከነትርጉሙ፣ \n
+
+          •	የውሣኔ ግልባጩ በመጨረሻው ገጽ ላይ የማይነበብ የደኞች ፊርማ፣ \n
+
+          •	ለሰበር ሰሚ የሚቀርብ አቤቱታ በ90 ቀን ውስጥ ማቅረብ፣ \n
+
+          •	ጊዜው ያለፈበት ከሆነ ማሰፈቀጃ ፣ \n
+          
+          •	አቤቱታው ስለ እውነተኛነቱ  ተረጋግጦ የተፈረመ \n"
+
+
+
+  utter_bankruptcy_court_jurisdiction:
+  - text: "በአዋጅ ቁ.1234 አንቀፅ 10 ላይ የተዘረዘሩትን ጉዳዮች የማየት ስልጣን አለው፡፡ ለበለጠ መረጃ አዋጁን ይመልከቱ"
+ 
+  utter_open_burglary_file:
+  - text:  "•	አቤቱታው የሰበር መመሪያ ቁ. 17/2015 አንቀፅ 4  መሰረ ቅሬታው መግቢያውን ሳይጨምር በ3 ገፅ ብቻ የተዘጋጀ ሆኖ የፅሁፍ መስመር ክፍተት በ1.5 ፣ የዙሪያው ህዳግ አንድ(1) ኢንች፣ የፊደሎች የቃላት መጠን ወይም ፎንት 12 ሆኖ በፓዎር ግዕዝ ቅርጽ ተዘጋጅቶ በፅሑፍ እና በሲዲ መቅረብ አለበት \n
+            
+            •	በየደረጃው ያሉ የስር ፍ/ቤት የውሳኔ ግልባጭ ማያያዝ፣ \n
+            
+            •	በጠበቃ ወይም በተወካይ የሚቀርብ ከሆነ ኦርጂናል ውክልና ከኮፒ ጋር \n
+            
+            •	አቤቱታው የሚቀርበው በራሱ በባለጉዳዩ ከሆነ የታደሰ የቀበሌ መታወቂያ፤ ፓስፖርት ወይም መንጃ ፈቃድ \n
+            
+            •	የወንጀል ጉዳይን በተመለከተ ታራሚው የሚያቀርበው የሰበር አቤቱታ ላይ የሚገኝበት ማረሚያ ቤት ማህተም እና የታራሚው ፊርማ በእያንዳንዱ ገፅ መኖር አለበት \n
+            
+            •	ከክልል ለሚመጡ ጉዳዮች በክልሉ ቋንቋ የተሰጡ ውሳኔዎች በአማርኛ ቋንቋ መተርጎም አለባቸው \n
+            
+            •	ህጉ በሚያስቀምጠው የሰበር ማቅረቢያ ጊዜ ውስጥ መቅረብ አለበት \n
+            
+            •	ተገቢውን ዳኝነት መከፈል  አለበት \n
+            
+            •	በደሀ ደንብ የሚቀርብ ከሆነ በህጉ መሰረት የተዘጋጀ የደሀ ደንብ ማመልከቻ  ከቴንብር ጋር መቅረብ አለበት \n
+            
+            •	ለበለጠ መረጃ አዋጅ ቁ.1234 እንዲሁም የሰበር አቤቱታ አቀራረብ መመሪያ ቁ.17/2015ን ይመልከቱ፡፡ ከፍርድ ቤቱ ዌብሳይት  www.fsc.gov.et.com  ማግኘት ይችላሉ፡፡ \n "
+
+
+  utter_prerequisite_submission_answer_hearing :
+  - text: "የሰበር ሬጅስትራሮች ጋር"
+
+  utter_Take_copy_decision_hearing:
+  - text:  "•	መልሱ/የመልስ መልሱ በሰበር መመሪያ ቁ.17/2015 አንቀፅ 4  መሰረት የሚቀርበው መልስ/የመልስ መልስ መግቢያውን ሳይጨምር በ  3ገፅ ብቻ የተዘጋጀ ሆኖ የፅሁፍ መስመር ክፍተት በ1.5 ፣ የዙሪያው ህዳግ አንድ(1) ኢንች፣ የፊደሎች የቃላት መጠን ወይም ፎንት 12 ሆኖ በፓዎር ግዕዝ ቅርጽ ተዘጋጅቶ በፅሑፍ እና በሲዲ መቅረብ አለበት \n
+            
+            •	ተጠሪው በራሱ የሚከራከር ከሆነ ማንነቱን የሚያረጋግጥ የታደሰ የቀበሌ መታወቂያ ፤ፓስፖር ወይም መንጃ ይዞ መቅረብ \n
+            
+            •	በውክልና የሚቅርብ ከሆነ ህጋዊ ውክልና ኦርጂናል እና ኮፒው በኢፋይሊንግ የሚላክ መልስ/የመልስ መልስ ከሆነ ከቀነ ቀጠሮ በፊት ቀድሞ ለፌ/ጠ/ፍ/ቤት ተወካይ መቅረብ አለበት "
+  
+   
+  utter_file_complaint_bankruptcy_court_jurisdiction:
+  - text: " ሰበር ሬጅስትራር ቢሮ ቁጥር"
+
+
+  utter_answer_submission_answer_hearing:
+  - text:  "•	አመልካቹ በራሱ የሚከራከር ከሆነ ማንነቱን የሚያረጋግጥ የታደሰ የቀበሌ መታወቂያ ፤ፓስፖር ወይም መንጃ ይዞ መቅረብ \n
+            •	በውክልና የሚቅርብ ከሆነ ህጋዊ ውክልና ኦርጂናል እና ኮፒው \n
+            •	 የሚከራከሩበት መ/ቁጥር መያዝ  ይኖርባቸዋል "
+  
+
+  utter_court_service:
+  - button_type: vertical
+    buttons:
+    - payload: /case_before_appellate_court
+      title: ይግባኝ ሰሚ ችሎት የሚያቸው ጉዳዮ 
+    - payload: /open_civil_appeal_court_file
+      title: ፍትሐብሔር ይግባኝ ችሎት ፋይል ለማስከፈት
+    - payload: /Open_expiren_file_civil_appeals 
+      title: ለፍትሐብሔር ይግባኝ እና ፍትሐብሔር ሰበር ጊዜ ያለፈበትን ፋይል ለማስከፈት
+    - payload: /Appeal_hearing_answer_receive
+      title: ይግባኝ ሰሚ ችሎት መልስ የመልስ መልስ ለመቀበል ለመስጠት 
+    - payload: /appellate_court_required_receive_answer_reply
+      title: ይግባኝ ሰሚ ችሎት መልስ/የመልስ መልስ ለመቀበል ይሟላ
+    - payload: /appellate_court_answer
+      title: ይግባኝ ሰሚ ችሎት መልስ ለመስጠት የሚሟሉ
+    - payload: /filing_petitions_civil_appeals_court
+      title: በፍትሐብሔር ይግባኝ ሰሚ ችሎት አቤቱታዎችን ከመዝገብ በተገናኝ
+    - payload: /about_fsc_am
+      title:  <-- ይመለሱ  
+    text: ስለ ችሎት አገልግሎት
+
+
+  utter_appellate_court_required_receive_answer_reply:
+  - text: " •	የሚከራከሩበት መ/ቁጥር መያዝ ይኖርባቸዋል \n
+           
+            •	በውክልና የሚቅርብ ከሆነ ህጋዊ ውክልና ኦርጂናል እና ኮፒው \n
+           
+            •	ይግባኝ ባዩ በራሱ የሚከራከር ከሆነ ማነቱን የሚያረጋግጥ የታደሰ የቀበሌ መታወቂያ ፤ፓስፖር ወይም መንጃ ይዞ መቅረብ"
+
+
+  utter_case_before_appellate_court:
+  - text: " •	በፍሥሥ ህግ እንዲሁም በአዋጅ ቁ.1234 አንቀፅ 9 በተሰጠው ስልጣን መሰረት \n
+            •	ለበለጠ መረጃ የሥ/ሥ/ህጉን እና አዋጁን ይመልክቱ"
+  
+  utter_Open_expiren_file_civil_appeals:
+  - text: በፍሥሥ ህጉ አንቀጽ 325 መሰረት የተዘጋጀ የማስፈቀጃ አቤቱታ መቅረብ አለበት
+
+  utter_Appeal_hearing_answer_receive:
+  - text: ይግባኝ ሰሚ ሬጅስትራሮች ቢሮ ቁጥር
+
+  utter_appellate_court_answer:
+  - text: " •	በስነ ስርዓት ህጉ መሰረት ተዘጋጅቶ መቅረብ አለበት \n
+            
+            •	በውክልና የሚቅርብ ከሆነ ህጋዊ ውክልና ኦርጂናል እና ኮፒው \n
+            
+            •	ይግባኝ ባዩ በራሱ የሚከራከር ከሆነ ማነቱን የሚያረጋግጥ የታደሰ የቀበሌ መታወቂያ ፤ፓስፖር ወይም መንጃ ይዞ መቅረብ \n
+              በኢፋይሊንግ የሚላክ መልስ ከሆነ ከቀነ ቀጠሮ በፊት ቀድሞ ለፌ/ጠ/ፍ/ቤት ተወካይ መቅረብ አለበት "
+
+  utter_filing_petitions_civil_appeals_court:
+  - text: " ፍትሐብሔር ይግባኝ ሬጅስትራር ቢሮ ቁጥር "
+
+ 
+  utter_court_appeal:
+  - button_type: vertical
+    buttons:
+    - payload: /open_criminal_appeals_court_file
+      title: ወንጀል ይግባኝ ሰሚ ፍ/ቤት ፋይል ለማስከፈት
+    - payload: /address_petitions_submitted_criminal_court
+      title: ለወንጀል ይግባኝ እና ለወንጀል ሰበር ጊዜ ያለፈበት ፋይል ለማስከፈት የሚሟሉ
+    - payload: /criminal_appeals_open_expired_file 
+      title: ለፍትሐብሔር ይግባኝ እና ፍትሐብሔር ሰበር ጊዜ ያለፈበትን ፋይል ለማስከፈት
+    - payload: /Fulfilled_submit_various_petitions_related_record
+      title: ከመዝገብ ጋር በተያያዘ የሚቀርቡ የተለያዩ አቤቱታዎችን ለማቅረብ  የሚሟሉት
+    - payload: /Binding_decisions_hearing_available
+      title: ሰበር ሰሚ ችሎት የሰጣቸውን አስገዳጅ የሰበር ውሳኔዎች ሚገኝበት
+    - payload: /appellate_court_answer
+      title: ይግባኝ ሰሚ ችሎት መልስ ለመስጠት የሚሟሉ
+    - payload: /filing_petitions_civil_appeals_court
+      title: በፍትሐብሔር ይግባኝ ሰሚ ችሎት አቤቱታዎችን ከመዝገብ በተገናኝ
+    - payload: /about_fsc_am
+      title:  <-- ይመለሱ  
+    text: ችሎት አገልግሎት 
+
+  utter_open_criminal_appeals_court_file:
+  - text: " •	ይግባኝ ቅሬታው በወ ስ ስ ህግ መሰረት ተዘጋጅቶ መቅረብ አለበት \n
+            
+            •	ይግባኙ የሚቀርበው በጠበቃ ከሆነ የጥብቅና ውል ይዘው መቅረብ ይኖርባቸዋል \n
+            
+            •	ይግባኙ የሚቀርበው በታራሚው ከሆነ ይግባኝ ቅሬታው ላይ የማረሚያ ቤቱ ማህተም \n
+              እና የታራሚው ፊርማ እያንዳንዱ ገፅ ላይ ሊኖር ይገባል \n
+            
+            •	ሙሉ የስር ፍ/ቤት መዝገብ ግልባጭ በመሸኛ መቅረብ አለበት \n
+            
+            •	ከክልል ለሚመጣ የይግባኝ ቅሬታ በክልሉ የስራ ቋንቋ የተሰራ መዝገብ በፌዴራሉ የስራ ቋንቋ መተርጎም ይኖርበታል \n
+            
+            •	ይግባኝ ቅሬታው በፅሁፍና በሲዲ መቅረብ አለበት \n
+            
+            •	ተገቢውን ዳኝነት መከፈል አለበት \n
+            
+            •	በደሀ ደንብ የሚቀርብ ከሆነ በህጉ መሰረት የተዘጋጀ የደሀ ደንብ ማመልከቻ መቅረብ አለበት \n
+              ለበለጠ መረጃ የወ ሥ ሥ ሕግ  ከፍርድ ቤቱ ዌብሳይት www.fsc.gov.et.com ይመልከቱ "
+  
+
+  utter_open_civil_appeal_court_file:
+  - text: " •	የይግባኝ ቅሬታው በፍሥሥ ህግ መሰረት ተዘጋጅቶ መቅረብ አለበት \n
+            
+            •	በጠበቃ ወይም በተወካይ የሚቀርብ ከሆነ ውክልና ኦርጂናል እና ኮፒ \n
+            
+            •	በባለጉዳዩ በራሱ የሚቀርብ ከሆነ የታደሰ መታወቂያ \n
+            
+            •	ከክልሎች ለሚቀርብ ይግባኝ ሙሉ የመዝገብ ግልባጭ በመሸኛ ተደርጎ መቅረብ አለበት \n
+            
+            •	በክልሉ የስራ ቋንቋ የተሰሩ መዝገቦች በአማርኛ ቋንቋ ተተርጉሞ መቅረብ አለበት \n
+            
+            •	የይግባኝ ቅሬታው በፅሁፍና በሲዲ መቅረብ አለበት \n
+            
+            •	ተገቢው ዳኝነት መከፈል አለበት \n
+            
+            •	በደሀ ደንብ የሚቀርብ ከሆነ በህጉ  በስነ ስርዓት ህጉ መሰረት የተዘጋጀ የደሃ ደንብ ማመልከቻ ከቴንብር ጋር መቅረብ አለበት \n
+            
+            •	ለበለጠ መረጃ የፍሥሥ  ሕግ ከፍርድ ቤቱ ዌብሳት www.fsc.gov.et.com ይመልከቱ፤ \n"
+
+
+  utter_address_petitions_submitted_criminal_court:
+  - text: "ወንጀል ይግባኝ ሬጅስትራር ቢሮ ቁጥር"
+
+  utter_criminal_appeals_open_expired_file:
+  - text: "በወ ሥ ሥ ህግ ቁ. አንቀፅ 191 መሰረት የተዘጋጀ የማስፈቀጃ አቤቱታ መቅረብ አለበት \n
+            በፍሬ ጉዳይ ላይ የተዘጋጀ ቅሬታ የስር ፍ/ቤት ውሳኔ ግልባጭ ወይም የመዝገብ ግልባ በመሸኛ መቅረብ አለበት "
+
+
+
+  utter_Fulfilled_submit_various_petitions_related_record:
+  - text: " •	ማንነትን የሚያረጋግጥ የታደሰ የቀበሌ መታወቂያ፤ ፓስፖርት ወይም ንንጃ ፈቃድ ይዘው መቅረብ \n 
+            •	በተወካይ የሚከቀርብ ከሆነ ውክልና ኦርጂናል እና ኮፒ \n
+            •	ቴምብር \n
+            •	የአቤቱታው ማመልከቻ "
+
+  
+  utter_Binding_decisions_hearing_available:
+  - text: " •	ከፌ ጠ ፍ ቤት የህግ ጥናትና ምርምር ዳይሬክቶሬት \n
+            •	ከመዝገብ ቤት \n
+            •	ከፌ ጠ ፍ ቤት ዌብ ሳይት  www.fsc.gov.et.com"
+
+  
+  utter_federal_supreme_court_address:
+  - button_type: vertical
+    buttons:
+    - payload: /main_supreme_court_addrees
+      title: የፌ/ጠ/ፍ/ቤት ዋና መስሪያ ቤት
+    - payload: /federal_hearing_address
+      title: የፌ/ጠ/ፍ/ቤት ሰበር ሰሚ ችሎቶች
+    - payload: /federal_Supreme_Court_Civil_Appeals
+      title: የፌ/ጠ/ፍ/ቤት ፍትሐብሔር ይግባኝ ሰሚ ችሎቶች
+    - payload: /federal_Supreme_Court_Criminal_Appeals
+      title: የፌ/ጠ/ፍ/ቤት ወንጀል ይግባኝ ሰሚ ችሎቶች
+    - payload: /directorate_Judgment_Execution_Federal_Courts
+      title: የፌ/ጠ/ፍ/ቤት የፍርድ አፈፃፀም ዳይሬክቶሬት
+    - payload: /children_Justice_Project_Office_Head 
+      title: የህፃናት ፍትህ ፕሮጀክት ጽ/ቤት ዋና መ/ቤት
+    - payload: /defense_attorney_office
+      title: ተከላካይ ጠበቃ ፅ/ቤት
+    - payload: /federal_Supreme_Sharia_Court
+      title: የፌደራል ጠቅላይ ሸሪዓ ፍ/ቤት
+    - payload: /about_fsc_am
+      title:  <-- ይመለሱ  
+    text: የፌዴራል ጠቅላይ ፍ/ቤት አድራሻ
+
+  utter_federal_high_court:
+  - button_type: vertical
+    buttons:
+    - payload: /federal_high_court_addrees
+      title: የፌደራል ከፍተኛ ፍ/ቤት አድራሻ
+    - payload: / main_menu_am
+      title:  <-- ይመለሱ  
+    text: የፌደራል ከፍተኛ  ፍ/ቤት
+
+ 
+  utter_federal_high_court_addrees:
+  - button_type: vertical
+    buttons:
+    - payload: /Main_office_high_court
+      title: የፌደራል ከፍተኛ ፍርድ ቤት ዋናው መስሪያ
+    - payload: /Direct_prosecution_civil_trial
+      title: ቀጥታ ክስ ፍትሐብሄር ችሎት
+    - payload: /Direct_prosecution_criminal_trial
+      title: ቀጥታ ክስ ወንጀል  ችሎት
+    - payload: /Bole_category_hearing
+      title: ቦሌ ምድብ ችሎት
+    - payload: /Kality_category_hearing
+      title: ቃሊቲ ምድብ ችሎት
+    - payload: /Arada_category_criminal_hearing
+      title: አራዳ ምድብ ወንጀል ችሎት 
+    - payload: /Rotating_category_hearings
+      title: ተዘዋዋሪ ምድብ ችሎቶች 
+    - payload: /Hawassa_categort_hearing
+      title: ሐዋሳ ምድብ ችሎት
+    - payload: /Diradawa_category_hearing
+      title: ድሬደዋ ምድብ ችሎት
+    - payload: /Directorate_Judgment_Execution
+      title: ፍርድ አፈጻጸም ዳይሬክቶሬት
+    text: የፌደራል ከፍተኛ  ፍ/ቤት አድራሻ
+
+  utter_service_complaintTo_am:
+  - button_type: vertical
+    buttons:
+    - payload: /compliant
+      title: አዲስ የሚቀርብ 
+    - payload: /compliant_status
+      title: የቅሬታ ሁኔታ
+    text: የአገልግሎት ቅሬታ
+
+  # utter_Federal_Court_First_Instance_address:
+  # - text: "ልደታ ክፍለ ከተማ ልደታ ቤተክርስቲያን አለፍ ብሎ ከአደባባዩ አጠገብ"
+  utter_Arada_medibe_chelote_address:
+  - text: "አራዳ ክፍለ ከተማ ከጊዮርጊስ ቤተክርስቲያን ወደ አዲሱ ገበያ በሚወስደው መንገድ ላይ  ሶራአምባ ሆቴል ፊት ለፊት "
+  utter_Trade_investment_hearing_address:
+  - text: " ፒያሳ አፍሪካ ወርቅ ቤት ፊት ለፊት የቀድሞ ብሪቲሽ ካውንስል የነበረበት ህንጻ ላይ "
+  utter_Lideta_first_instance_address:
+  - text: " ልደታ ክፍለ ከተማ ልደታ ቤተ ክርስቲያን አለፍ ብሎ ከአደባባዩ አጠገብ "
+  utter_Kolifa_first_instance_address:
+  - text: "ኮልፌ ቀራንዮ ክፍለ ከተማ ጦርሀይሎች ካልዲስ ካፌ አጠገብ "
+  utter_Nifas_silk_first_instance_address:
+  - text: "ን/ስ/ላ ክፍለ ከተማ ለቡ ቫርኔሮ አደባባይ አጠገብ"
+  utter_Menagesh_first_insance_address:
+  - text: "ጉለሌ ክፍለ ከተማ አራት ኪሎ  አርበኞች ህንጻ ላይ"
+  utter_Limicora_first_instance_address:
+  - text: "ለሚ ኩራ ክፍለ ከተማ ሰሚት ሳፋሪ ዲቦራ ትምህርት ቤት አጠገብ የቀድሞ ቦሌ ምድብ ችሎት የነበረበት ህንጻ ላይ "
+  utter_Yeka_first_instance_address:
+  - text: "የካ ክፍለ ከተማ ፖሊስ መምሪያ አጠገብ "
+  utter_Akaki_first_instance_address:
+  - text: " አቃቂ ቃሊቲ ክፍለ ከተማ አቃቂ አዲሱ እስታዲየም ፊት ለፊት "
+  utter_AddisKetima_first_instance_address:
+  - text: "አዲስ ከተማ ክፍለ ከተማ አማኑኤል ቤተክርስቲያን ፊት ለፊት "
+  utter_Kerkose_first_instance_address:
+  - text: " ቂርቆስ ክፍለ ከተማ ቄራ የኢትየጲያ ንግድ ባንክ ቄራ ቅርንጫፍ ጎን"
+  utter_Bole_first_instance_address:
+  - text: "ቦሌ ክፍለ ከተማ መገናኛ ሃያ አራት አካባቢ ኮከብ ህንጻ ላይ"
+  utter_DiraDiwa_first_instance_address:
+  - text: "ድሬደዋ ከተማ ነምበር ዋን ፋይናስ አካባቢ "
+  utter_Directorate_Federal_Judgment_Execution_address:
+  - text: "የፍርድ አፈጻጸም ዳይሬክቶሬት አድራሻው ልደታ የፈደራል መጀመሪያ ደረጃ ፍርድ ቤት ዋና መስሪያ ቤት ጊቢ \n
+            ውስጥ ሲሆን የሚሰጠው አገልግሎት በፍታብሄር ጉዳዮች ላይ የተሰጠ ውሳኔ በፍ/ቤቱ ትእዛዝ መሰረት ማስፈጸም ነው"
+  utter_Children_Justice_Office_Address:
+  - text: "አድራሻው አራዳ ክፍለ ከተማ ወረዳ 05 የቀድሞ ፌ/መ/ደ/ፍ/ቤት መናገሻ ምድብ ችሎት የነበረበት ህንጻ ላይ \n
+          ሲሆን የሚሰጣቸው አገልግሎቶች  ለህጻናት እና ከህጻናት ጋር ላሉ እናቶች ነጻ የህግ አገልግሎት፤የስነልቦና ምክር \n
+          አገልግሎት ፤ጠበቃ መመደብ፤የዲኤንኤ ምርመራ ክፍያ መክፈል ለማይችሉ ችሎቱ ትእዛዝ ሲሰጥ አቅም በፈቀደ መጠን የክፍያ ወጪ መሸፈን ናቸው"
+
+  utter_What_visible_issues:
+  - text: >-
+        የፌደራል ፍርድ ቤቶች የዳኝነት ስልጣን በአዋጅ ቁጥር 1234/13 የተሰጠ ነው በአዋጁ ላይ የፌደራል መጀሪያ ደረጃ
+        ፍርድ ቤት የዳኝነት 
+         ስልጣን አንቀጽ 3፤4፤5፤14፤15 እና 17 ተዘርዝሯል ለበለጠ መረጃ  አዋጁን በተቋሙ ዌብሳይት ላይ https://www.ffic.gov.et/en-us/ ያገኙታል
+  utter_complaint_against_employee_Directorate_Justice:
+  - text: >-
+        ላይ ቅሬታ ካለዎት በቃል ወይም በጹኁፍ ለፍርድ አፈጻጸም ዳይሬክቶሬት ዳይሬክተር ማቅረብ ይችላሉ፤በፍርድ አፈጻጸም
+        ሂደት ወይም የህግ ጉዳይ 
+         ላይ ቅሬታ ካለዎት በጹኁፍ ውሳኔውን ለሰጠው ችሎት ማቅረብ ይችላሉ፡፡ 
+  utter_Contract_Gudcha_submitted_approve_court:
+  - text: |-
+        የሚቀርበው ፌደራል መጀመሪያ ደረጃ ፍርድ ቤት ቦሌ ምድብ ችሎት ሲሆን ውሉን በፍርድ ቤት ለማጸደቅ በቤተሰብ 
+         ህጉ መሰረት አቤቱታው ተማልቶ መቅረብ አለበት ለበለጠ መረጃ ባለሙያዎትን ያማክሩ
+  utter_Prerequisites_recovering_money_guarantee:
+  - text: |-
+        ዋስትና ተመላሽ እንዲደረግላቸው የታዘዘውን ትዕዛዝ፣የዋስትና ገንዘብ የከፈሉበትን ደረሰኝ ኮፒ፤የታደሰ መታወቂያ 
+         የዋስትና ገንዘቡን ተመላሽ እንዲደረግላቸው ከጻፉት ማመልከቻ ጋር ማቅረብ፡፡በውክልና ከሆነ ገንዘብ ለመቀበል 
+         የሚያስችል ውክልና መቅረብ ይጠበቅበታል 
+  utter_Advance_recover_money_paid_arbitration:
+  - text: "የዳኝነት እንዲመለስ የታዘዘበት ትእዛዝ ፤ማንነትዎን የሚገልጽ መታወቂያ በውክልና ከሆነ ገንዘብ ለመቀበል የሚያስችል
+        ውክልና "
+  utter_Complaints_services_provided_administrative_staff:
+  - text: "ለምድብ ችሎቱ አስተባባሪ ሬጅስትራር እና ተጠሪ ዳኛ "
+  utter_Complaints_services_provided_Registrar:
+  - text: "ለምድብ ችሎቱ አስተባባሪ ሬጅስትራር፤ ተጠሪ ዳኛ ፤ፌ/መ/ደ/ፍ/ቤት ዋና ሬጅስትራር "
+  utter_Complaints_against_judges:
+  - text: |-
+        ለምድብ ችሎቱ ተጠሪ፤ለፌደራል መጀመሪያ ደረጃ ፍርድ ቤት ለምክትል ፕሬዘዳንቶት 
+         ለፌደራል መጀመሪያ ደረጃ ፍርድ ቤት ፕሬዘዳንት እና ለዳኞች አስተዳደር ጉባኤ
+  utter_Complaint_filed_judicial_service_registry:
+  - text: ለፌደራል መጀመሪያ ደረጃ ፍርድ ቤት ኢንስፔክሽን ክፍል፡
+  utter_About_record_appointment:
+  - text: |-
+        በአካል በመገኘት መዝገቡ በተከፈተበት ምድብ ችሎቶች ባሉ መረጃ ክፍሎች  እና የፌ/መ/ደ/ፍ/ቤት 
+         ዌብሳይት https://www.ffic.gov.et/en-us/ መመልከት ይችላሉ
+  utter_Information_general_services_provide:
+  - text: " የፌደራል መጀመሪያ ደረጃ ፍርድ ዌብሳይት https://www.ffic.gov.et/en-us/ ይጎብኙ "
+  utter_Appoint_defense_attorney:
+  - text: |2-
+         በህገ መንግስቱ አንቀጽ 20(5) መሰረት በወንጀል ጉዳዮች ላይ የሕግ ጠበቃ የመወከል ወይም ጠበቃ ለማቆም 
+         አቅም በማጣታቸው ፍትህ ሊጓደል የሚችልበት ሁኔታ ሲያጋጥም ችሎቱ በሚሠጠው ትእዛዝ መሰረት ይመደባል 
+         በፍታብሄር ጉዳዮች ላይ የፍትህ ሚኒስቴርን እና ሊሎች ነጻ የህግ አገልግሎት የሚሰጡ ተቋማትን ያማክሩ 
+  utter_Meet_open_record:
+  - text: |-
+        በስነ ስርአት ህጎቹ መሰረት ተዘጋጅቶ የቀረበ አቤቱታ ከበቂ ኮፒ እና በሲዲ ይዞ መቅረብ እና 
+         ማንነትዎን የሚገልጽ የታደሰ መታወቂያ መዝገቡ የሚከፈተው በውክልና ከሆነ ፍርድ ቤት ቀርቦ ለመከራከር 
+         የሚያስችል አግባብነት ያለው ውክልና መቅረብ ይጠበቅበታል፡፡
+  utter_meet_open_record_performance:
+  - text: |-
+        በፍታብሄር ስነስርአት ህጉ መሰረት ተዘጋጅቶ የቀረበ አቤቱታ እና የሚፈጸመው ውሳኔ ኦርጅናል፤ማንነትዎን 
+         የሚገልጽ መታወቂያ የሚቀርበው በውክልና ከሆነ በፍርድ ቤት ቀርቦ ለመከራከር የሚያስችል አግባብነት 
+         ያለው ውክልና መቅረብ ይጠበቅበታል፡፡
+  utter_Conditions_need_fulfill_submit:
+  - text: |2-
+         በስነ ስርአት ህጎቹ መሰረት ተዘጋጅቶ የቀረበ አቤቱታ ከበቂ ኮፒ እና በሲዲ ይዞ መቅረብ እና ማንነትዎን 
+         የሚገልጽ የታደሰ መታወቂያ መዝገቡ የሚከፈተው በውክልና ከሆነ ፍርድ ቤት ቀርቦ ለመከራከር የሚያስችል 
+         አግባብነት ያለው ውክልና መቅረብ ይጠበቅበታል
+  utter_Prerequisites_obtain_copy_decision:
+  - text: የውሳኔ ግልባጭ መጠየቂያ ማመልከቻ ማንነትዎን የሚገልጽ መታወቂያ በውክልና ከሆነ አግባብነት ያለው ውክልና
+  utter_Complete_get_copy_appeal:
+  - text: |-
+        ለከፍተኛ ፍርድ ቤት የተዘጋጀ ቅሬታ እና ማንነትዎን የሚገልጽ የታደሰ መታወቂያ በውክልና ከሆነ አግባብነት ያለው 
+         ውክልና፤ከከፍተኛ ፍርድ ቤት የስር ፍርድ ቤት መዝገብ ግልባጭ እንዲላክ የተጠየቀበት መጠየቂያ
+  utter_Meet_take_copy_criminal_appeal:
+  - text: |-
+        ለከፍተኛ ፍርድ ቤት የተዘጋጀ ቅሬታ እና መታወቂያ በውክልና ከሆነ ውክልና፤የተወካዩ መታወቂያ ፤ከስር ፍርድ ቤት 
+        ለከፍተኛ ፍርድ ቤት የመዝገብ ግልባጭ እንዲላክ ማመልከቻ 
+
+  utter_main_supreme_court_addrees:
+  - text: "በአራዳ ክ/ከ/ወ3 ስድስት ኪሎ አንበሳ ግቢ ፊት ለፊት"
+  utter_federal_hearing_address:
+  - text: "በአራዳ ክ/ከ/ወ 3 ስድስት ኪሎ አንበሳ ግቢ ፊት ለፊት ፌደራል ጠቅላይ ፍርድ ቤት ዋናው ጊቢ"
+  utter_federal_Supreme_Court_Civil_Appeals:
+  - text: "በአራዳ ክ/ከተማ ወ 09 4ኪሎ ቱሪስት ሆቴል ጀርባ ኢትዮ ፖስታ ህንፃ ላይ"
+  utter_federal_Supreme_Court_Criminal_Appeals:
+  - text: "በአራዳ ክ/ከ/ወ3 ስድስት ኪሎ አንበሳ ግቢ ፊት ለፊት ፌደራል ጠቅላይ ፍርድ ቤት ዋናው ጊቢ"
+  utter_directorate_Judgment_Execution_Federal_Courts:
+  - text: "ልደታ ከፍተኛ ፍ/ቤት ቅጥር ግቢ ውስጥ"
+  utter_children_Justice_Project_Office_Head:
+  - text: "5ኪሎ ብሄራዊ ሙዚየም ፊት ለፊት የቀድሞ መናገሻ ምድብ ችሎት ቅጥር ጊቢ ውስጥ ስ.ቁ 0111565656፣0118965394/95"
+  utter_defense_attorney_office:
+  - text: "ልደታ ክ/ከተማ ወረዳ 01 ደሴ ሆቴል ፊት ለፊት "
+  utter_federal_Supreme_Sharia_Court:
+  - text: "አራዳ ክ/ከ ወረዳ 7 ሳንፎርድ ት/ቤት አካባቢ"
+  utter_Main_office_high_court:
+  - text: "በልደታ ክ/ከተማ ልደታ ቤተክርስቲያን አለፍ ብሎ ዳርማር አጠገብ"
+  utter_Direct_prosecution_civil_trial:
+  - text: "በልደታ ክ/ከተማ ልደታ ቤተክርስቲያን ኑር ህንፃ  አጠገብ"
+  utter_Direct_prosecution_criminal_trial:
+  - text: "በልደታ ክ/ከተማ ልደታ ቤተክርስቲያን አለፍ ብሎ ዳርማር አጠገብ/ ዋናው መስሪያቤት"
+  utter_Bole_category_hearing:
+  - text: "ሰሚት ሳፋሪ ዲቦራ ትምህርት ቤት አጠገብ"
+  utter_Kality_category_hearing:
+  - text: "አቃቂ ቃልቲ ክ/ከተማ /ፋሪድ ህንፃ ፊት ለፊት/አቃቂ ቃሊቲ ክ/ከተማ አጠገብ"
+  utter_Arada_category_criminal_hearing:
+  - text: "አራዳ ክ/ከተማ ወረዳ 5 ጊዮርጊስ ቤ/ክ ከፍ ብሎ የአዲስ አበባ ፖሊስ ኮሚሽን ፊት ለፊት"
+  utter_Rotating_category_hearings:
+  - text : "ከአዲስ አበባ የሚነሱ፤-መተከል፤ አሶሳ፤ አርባ ምንጭ፤ ከሐዋሳ ምድብ ችሎት የሚነሱ፤ ወራቤ፤ ዲላ ቡታጂራ"
+  utter_Hawassa_categort_hearing:
+  - text: "ሐዋሳ ወልደ አማኑኤል አደባባይ"
+  utter_Diradawa_category_hearing:
+  - text: "ድሬዳዋ ከዚራ የድሬዳዋ ከተማ አስተዳደር ፍርድ ቤት ህንፃ ለይ "
+  utter_Directorate_Judgment_Execution:
+  - text: "ልደታ የፌደራል ከፍተኛ  ፍርድ ቤት ዋና መስሪያ ቤት ጊቢ ውስጥ "
+  utter_ask_reference_number_am:
+  - text: እባኮን መለያ ቁጥሮን አስገቡ
+  utter_done:
+  - text: |-
+      All Done! thank you for providing your information
+  utter_ask_upload_image:
+  - text: እባክዎ ሰነድዎን ያያይዙ
+  utter_ask_case_status_menu_am:
+  - text: እባክዎ መለያ ቁጥሮን አስገቡ
+  utter_incorrect_case_number_message:
+  - text: እባክዎ መለያ ቁጥሮን አስገቡ
+
+
 actions:
-  - action_register_user
-  - action_login_user
-  - action_post_login_menu
-  # - action_check_auth
-  - action_auth_required
-  - action_reset_case_number
-  - action_logout
-  - action_reset_slots
-  - check_ref_number_am
-  - case_confirmation
-  - action_fetch_court_leveles
-  - action_save_court_level
-  - action_save_branch
-  - action_fetch_branches_by_court_level
-  - action_fetch_court_main_services
-  - action_save_court_main_service
-  - action_fetch_subunit_one
-  - action_save_subunit_one
-  - action_fetch_subunit_two
-  - action_save_subunit_two
-  - action_fetch_subunit_three
-  - action_save_subunit_three
-  - action_ask_attachment
-  - action_save_attachment
-  - action_ask_content
-  - action_save_content
-  - submit_compliant_en
-  - action_upload_image
-  - action_reset_all_slots
-  - action_new_slot
-  - action_show_my_complaints
-  - action_select_complaint
-  - action_view_complaint_detail
-  - action_appeal_complaint
-  - action_submit_appeal
-  - action_view_info_request
-  - action_handle_info_response_submit
-  - action_submit_info_response
+
+- action_register_user
+- action_login_user
+- action_post_login_menu
+# - action_check_auth
+- action_auth_required
+- action_reset_case_number
+- action_logout
+- action_reset_slots
+- check_ref_number_am
+- case_confirmation
+- action_fetch_court_leveles
+- action_save_court_level
+- action_save_branch
+- action_fetch_branches_by_court_level
+- action_fetch_court_main_services
+- action_save_court_main_service
+- action_fetch_subunit_one
+- action_save_subunit_one
+- action_fetch_subunit_two
+- action_save_subunit_two
+- action_fetch_subunit_three
+- action_save_subunit_three
+- action_ask_attachment
+- action_save_attachment
+- action_ask_content
+- action_save_content
+- submit_compliant_en
+- action_upload_image
+- action_show_my_complaints
+- action_select_complaint
+- action_view_complaint_detail
+- action_appeal_complaint
+- action_submit_appeal
+- action_view_info_request
+- action_handle_info_response_submit
+- action_submit_info_response
+- Registrar_of_Civil_Appeals_am_form
+- action_Criminal_Appeals_Registrar_am
+- action_Data_encoder_am
+- action_E_filing_Registrar_am
+- action_Registrar_of_Civil_Appeals
+- action_Scan_room_am
+- action_chelot_tsafi_Registrar_am
+- action_complinantType
+- action_fetch_court_main_servicce
+- action_seber_semi_Registrar_am
+- action_subunit_one
+- action_subunit_three
+- action_subunit_two
+- compliantTo_form
+- content_compliant_form
+- save_court_service_main
+- save_subunit_one
+- save_subunit_three
+- save_subunit_two
+- form_complaint_status_am
+- form_re_apply_compliant_am
+- action_DISAGREED_complaint
+- action_AGREED_complaint
+- action_choose_comment_type
+- actions_listen
+- action_reset_slots_value
+- action_confirm_complaint
+- action_choose_image
+- action_new_slot
+- utter_Federal_Court_First_Instance_address
+- action_reset_all_slots
+- form_Case_tracking_am
+
+
 
 
 forms:
@@ -332,7 +1085,23 @@ forms:
       - type: from_intent
         intent: deny
         value: false
-session_config:
-  session_expiration_time: 120
-  carry_over_slots_to_new_session: false
-  
+
+  form_re_apply_compliant_am:
+    required_slots:
+      re_apply_compliant_am:
+      - type: from_text
+  form_complaint_status_am:
+    required_slots:
+      compliant_status:
+      - type: from_text
+      additional_slot:
+      - type: from_text
+
+  action_DISAGREED_complaint:
+    required_slots:
+      content:
+      - type: from_text
+  form_Case_tracking_am:
+    required_slots:
+      case_status_menu_am:
+      - type: from_text

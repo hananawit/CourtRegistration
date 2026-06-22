@@ -1,6 +1,13 @@
-version: "2.0"
-
+version: "2.0"  # 2.8.0-
 rules:
+
+- rule: to get main mainu 
+  steps:
+  - intent: start
+  - action: utter_start
+  - action: utter_welcome_am
+  - action: utter_main_menu_am
+  - action: action_reset_all_slots
 # =============== BASIC FLOW RULES ===============
 - rule: view complaint detail
   steps:
@@ -17,10 +24,10 @@ rules:
   - intent: provide_content
   - action: action_save_content
   
-- rule: Welcome message
-  steps:
-  - intent: greet
-  - action: utter_welcome
+# - rule: Welcome message
+#   steps:
+#   - intent: greet
+#   - action: utter_welcome
 
 - rule: Check auth for complaint
   steps:
