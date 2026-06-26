@@ -8,6 +8,12 @@ rules:
   - action: utter_welcome_am
   - action: utter_main_menu_am
   - action: action_reset_all_slots
+
+- rule: return to main menu
+  steps:
+  - intent: main_menu_am
+  - action: utter_main_menu_am
+  - action: action_reset_all_slots
 # =============== BASIC FLOW RULES ===============
 - rule: view complaint detail
   steps:
