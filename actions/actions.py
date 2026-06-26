@@ -16,6 +16,17 @@ from rasa_sdk import Tracker,FormValidationAction
 from rasa_sdk.events import SlotSet,AllSlotsReset
 import requests
 import json
+import time
+
+# #region agent log
+def _debug_log(location, message, data, hypothesis_id, run_id="pre-fix"):
+    try:
+        log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "debug-6adeac.log")
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps({"sessionId": "6adeac", "timestamp": int(time.time() * 1000), "location": location, "message": message, "data": data, "hypothesisId": hypothesis_id, "runId": run_id}) + "\n")
+    except Exception:
+        pass
+# #endregion
 from rasa_sdk import Action, Tracker, logger
 from rasa_sdk.events import SlotSet, EventType
 
@@ -239,6 +250,9 @@ class ActionResetAllSlots(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        # #region agent log
+        _debug_log("actions.py:ActionResetAllSlots", "reset invoked", {"latest_intent": tracker.latest_message.get("intent", {}).get("name"), "latest_action_name": tracker.latest_action_name}, "B")
+        # #endregion
         # Preserve auth/session slots when resetting all other slots.
         access_token = tracker.get_slot("access_token")
         user_id = tracker.get_slot("user_id")
@@ -438,7 +452,7 @@ class ActionPostLoginMenu(Action):
             {"title": "የግባኝ ማስገባት", "payload": "/appeal_complaint"}
         ]
         dispatcher.utter_message(text="ምን ማድረግ የፈለጋሉ ?", buttons=buttons, button_type="vertical")
-        return []
+        return [FollowupAction("action_listen")]
 
 # class ActionCheckAuth(Action):
 #     def name(self) -> Text:
@@ -582,6 +596,9 @@ class ActionLoginUser(Action):
                     elif previous_intent == "appeal_complaint":
                         followup_action = "action_appeal_complaint"
                     # For "login" intent or default, show menu
+                    # #region agent log
+                    _debug_log("actions.py:ActionLoginUser", "post-login followup chosen", {"previous_intent": previous_intent, "followup_action": followup_action}, "D")
+                    # #endregion
 
                     expires_at = (_utc_now() + datetime.timedelta(minutes=SESSION_TTL_MINUTES)).isoformat()
                     return [
@@ -626,6 +643,8 @@ class ActionShowMyComplaints(Action):
         if not access_token:
             return auth_events
 
+        user_complaints = []
+
         try:
             api_url = "https://court-api.zorcloud.net/complaints/my-complaints"
             headers = {
@@ -637,18 +656,17 @@ class ActionShowMyComplaints(Action):
 
             if response.status_code != 200:
                 dispatcher.utter_message(text="ቅሬታዎችን ለማሳየት አልተሳካም።")
-                return []
+                return [FollowupAction("action_listen")]
 
             complaints_data = response.json()
 
             if not complaints_data.get("data"):
                 dispatcher.utter_message(text="ምንም ቅሬታ አልተገኘም።")
-                return []
+                return [FollowupAction("action_listen")]
 
             complaints = complaints_data["data"]
 
             # Store complaints data for later use (to get IDs)
-            user_complaints = []
             for complaint in complaints:
                 user_complaints.append({
                     "id": complaint.get("id"),
@@ -672,9 +690,14 @@ class ActionShowMyComplaints(Action):
             print(f"Error fetching complaints: {e}")
             dispatcher.utter_message(text="ለጊዜው አገልግሎቱን መስጠት አልተቻለም")
 
-        return [
+        events = [
             SlotSet("user_complaints", user_complaints),
+            FollowupAction("action_listen"),
         ]
+        # #region agent log
+        _debug_log("actions.py:ActionShowMyComplaints", "returning events with followup listen", {"latest_intent": tracker.latest_message.get("intent", {}).get("name"), "latest_action_name": tracker.latest_action_name, "event_types": [type(e).__name__ for e in events]}, "A", run_id="post-fix")
+        # #endregion
+        return events
 
 # =============== SELECT COMPLAINT ACTION ===============
 class ActionSelectComplaint(Action):
@@ -1246,7 +1269,7 @@ class ActionSubmitInfoResponse(Action):
                     SlotSet("has_evidence", None),
                     SlotSet("upload_image", None),
                     SlotSet("selected_complaint_ref", None),
-                    # FollowupAction("action_view_complaint_detail"),
+                    FollowupAction("action_listen"),
                 ]
 
             try:
@@ -1389,6 +1412,7 @@ class ActionAppealComplaint(Action):
                         SlotSet("appeal_complaint_id", None),
                         SlotSet("appeal_reference_no", None),
                         SlotSet("previous_intent", None),
+                        FollowupAction("action_listen"),
                     ]
 
                 # Activate appeal form to collect appeal reason
@@ -1469,7 +1493,7 @@ class ActionSubmitAppeal(Action):
                 except Exception:
                     message = "ይገባኝ ማስገባት አልተሳካም።"
                 dispatcher.utter_message(text=message)
-                return []
+                return [FollowupAction("action_listen")]
 
             appeal_data = response.json()
             status = appeal_data.get("status", "PENDING")
@@ -1496,7 +1520,7 @@ class ActionSubmitAppeal(Action):
         except Exception as e:
             print(f"Error submitting appeal: {e}")
             dispatcher.utter_message(text="ለጊዜው አገልግሎቱን መስጠት አልተቻለም")
-            return []
+            return [FollowupAction("action_listen")]
 # class ActionCheckAuth(Action):
 #     def name(self) -> Text:
 #         return "action_check_auth"
@@ -2429,7 +2453,7 @@ class ActionFetchCourtMainServices(Action):
             message = "እባክዎን የፍ/ቤት ዋና አገልግሎት ይምረጡ:"
             dispatcher.utter_message(text=message, buttons=buttons, button_type="vertical")
 
-            return [SlotSet("available_court_main_services", top_level_organizations)]
+            return [SlotSet("available_court_main_services", top_level_organizations), FollowupAction("action_listen")]
             
         except requests.exceptions.Timeout:
             dispatcher.utter_message(text="ጊዜ አልቋል")
@@ -2491,13 +2515,22 @@ class ActionSaveCourtMainService(Action):
 
         court_main_service_id = None
         
+        # Extract from /select_court_main_service payload
+        if user_text.startswith("/select_court_main_service"):
+            import re
+            match = re.search(r'/select_court_main_service\{"court_main_service_id"\s*:\s*"([^"]+)"\}', user_text)
+            if match:
+                court_main_service_id = match.group(1)
+                print(f"DEBUG: Extracted from select_court_main_service payload: {court_main_service_id}")
+
         # Extract from "cms_" prefix pattern
-        if user_text.startswith("cms_"):
+        if not court_main_service_id and user_text.startswith("cms_"):
             # Remove "cms_" prefix to get the UUID
             court_main_service_id = user_text.replace("cms_", "", 1)
             print(f"DEBUG: Extracted from cms_ prefix: {court_main_service_id}")
-        else:
-            # Try direct UUID (without prefix)
+
+        # Try direct UUID (without prefix)
+        if not court_main_service_id:
             court_main_service_id = user_text.strip()
         
         # Validate it's a UUID
@@ -2670,7 +2703,7 @@ class ActionFetchSubUnitOne(Action):
                     "accepts_complaints": org.get("accepts_complaints", False)
                 })
 
-            return [SlotSet("available_subunits", child_data)]
+            return [SlotSet("available_subunits", child_data), FollowupAction("action_listen")]
 
         except requests.exceptions.Timeout:
             dispatcher.utter_message(text="ጊዜ አልቋል")
@@ -3601,6 +3634,7 @@ class ActionSubmitcompliant(Action):
                         SlotSet("available_subunit_twos", None),
                         SlotSet("available_subunit_threes", None),
                         SlotSet("available_subunits", None),
+                        FollowupAction("action_listen")
                     ]
                 
                 else:

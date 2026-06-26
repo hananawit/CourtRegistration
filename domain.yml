@@ -408,7 +408,7 @@ responses:
       title: በዋስትና የተያዘ ገንዘብ ለማስመለስ ምን ምን ቅድመ
     - payload: / Advance_recover_money_paid_arbitration
       title: ለዳኝነት የተከፈለ ገንዘብ ለማስመለስ ቅድመ
-    - payload: / main_menu_am
+    - payload: /main_menu_am
       title: <-- ይመለሱ
     text: ፌደራል መጀመሪያ ደረጃ ፍርድ ቤት
 
@@ -772,7 +772,7 @@ responses:
     buttons:
     - payload: /federal_high_court_addrees
       title: የፌደራል ከፍተኛ ፍ/ቤት አድራሻ
-    - payload: / main_menu_am
+    - payload: /main_menu_am
       title:  <-- ይመለሱ  
     text: የፌደራል ከፍተኛ  ፍ/ቤት
 
@@ -953,7 +953,7 @@ responses:
   utter_Directorate_Judgment_Execution:
   - text: "ልደታ የፌደራል ከፍተኛ  ፍርድ ቤት ዋና መስሪያ ቤት ጊቢ ውስጥ "
   utter_ask_reference_number_am:
-  - text: እባኮን መለያ ቁጥሮን አስገቡ
+  - text: እባኮን የጉዳይ መለያ ቁጥሮን አስገቡ 
   utter_done:
   - text: |-
       All Done! thank you for providing your information

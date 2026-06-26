@@ -851,6 +851,8 @@ nlu:
     - my complaints
     - ቅሬታ አሳይ
     - /show_my_complaints
+    - የኔ ቅሬታዎች 
+    
 
 - intent: select_complaint
   examples: |
